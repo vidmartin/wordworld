@@ -33,7 +33,10 @@ export class GameBoard extends React.Component {
             boardArray: "",
             origin: props.game.origin,
             zoom: 1,
-            placedLetters: {}
+            placedLetters: {},
+            wordPos: null,
+            wordStr: null,
+            wordDir: null
         };
 
         this.cache = {
@@ -113,25 +116,24 @@ export class GameBoard extends React.Component {
             
             for (let x = 0; x < this.state.boardRect.w; x++) {
                 for (let y = 0; y < this.state.boardRect.h; y++) {
-                    let letterChar = this.state.boardArray[y * this.state.boardRect.w + x];
-
                     // coordinates relative to entire board (x & y vars are relative to current section)
-                    let actualBoardX = x + this.state.boardRect.x; 
-                    let actualBoardY = y + this.state.boardRect.y;
+                    let actualPos = { x: x + this.state.boardRect.x, y: y + this.state.boardRect.y };
+                    let letterChar = this.getCharAtGlobal(actualPos);
 
-                    let placedLetter = this.state.placedLetters[`${actualBoardX},${actualBoardY}`];                   
+                    //let placedLetter = this.state.placedLetters[`${actualPos.x},${actualPos.y}`];                   
 
-                    if (placedLetter == undefined) {
-                        context.fillStyle = this.getCellFillColor({ x: actualBoardX, y: actualBoardY }, letterChar);
-                    } else {
-                        context.fillStyle = PLACED_INVALID_CELL_COLOR;
-                        letterChar = placedLetter.letter;
-                    }   
-                    
-                    context.fillRect(actualBoardX - CELL_RADIUS, actualBoardY - CELL_RADIUS, CELL_RADIUS * 2, CELL_RADIUS * 2);
+                    //if (placedLetter == undefined) {
+                    //    context.fillStyle = this.getCellFillColor(actualPos, letterChar);
+                    //} else {
+                    //    context.fillStyle = PLACED_INVALID_CELL_COLOR;
+                    //    // letterChar = placedLetter.letter;
+                    //}   
+
+                    context.fillStyle = this.getCellFillColor(actualPos, letterChar);
+                    context.fillRect(actualPos.x - CELL_RADIUS, actualPos.y - CELL_RADIUS, CELL_RADIUS * 2, CELL_RADIUS * 2);
 
                     context.fillStyle = CELL_FONT_COLOR;
-                    context.fillText(letterChar.toUpperCase(), actualBoardX, actualBoardY);
+                    context.fillText(letterChar.toUpperCase(), actualPos.x, actualPos.y);
                 }
             }
         } finally {
@@ -140,6 +142,10 @@ export class GameBoard extends React.Component {
     }
 
     getCellFillColor(position, letterChar) {
+        if (this.getIndexInWord(position) >= 0) {
+            return PLACED_INVALID_CELL_COLOR;
+        }
+
         if (this.cache.highlightedSquare != null
             && position.x == this.cache.highlightedSquare.x
             && position.y == this.cache.highlightedSquare.y) {
@@ -260,23 +266,152 @@ export class GameBoard extends React.Component {
         }
 
         if (this.getCharAtGlobal(this.cache.highlightedSquare) == " ") {
-            this.setState({
-                placedLetters: {
-                    ...this.state.placedLetters,
-                    [`${this.cache.highlightedSquare.x},${this.cache.highlightedSquare.y}`]: this.props.game.currentlyDraggedLetter 
-                }
-            });
+            //this.setState({
+            //    placedLetters: {
+            //        ...this.state.placedLetters,
+            //        [`${this.cache.highlightedSquare.x},${this.cache.highlightedSquare.y}`]: this.props.game.currentlyDraggedLetter 
+            //    }
+            //});
 
-            return true;
+            if (this.state.wordPos == null) {
+                // first letter placed - new word started
+
+                this.setState({
+                    wordPos: { ...this.cache.highlightedSquare },
+                    wordStr: this.props.game.currentlyDraggedLetter.letter
+                });
+
+                return true;
+
+            } else if (this.state.wordDir == null) {
+                // second letter placed - direction set
+
+                if (this.cache.highlightedSquare.x == this.state.wordPos.x) {
+                    // vertical dir
+
+                    switch (this.cache.highlightedSquare.y - this.state.wordPos.y) {
+                        case 1:
+                            this.setState({
+                                wordDir: "y",
+                                wordStr: this.state.wordStr + this.props.game.currentlyDraggedLetter.letter
+                            });
+                            return true;
+
+                        case -1:
+                            this.setState({
+                                wordDir: "y",
+                                wordPos: { x: this.state.wordPos.x, y: this.state.wordPos.y - 1 },
+                                wordStr: this.props.game.currentlyDraggedLetter.letter + this.state.wordStr
+                            });
+                            return true
+
+                        default:
+                            return false;
+                    }
+                } else if (this.cache.highlightedSquare.y == this.state.wordPos.y) {
+                    // horizontal dir
+
+                    switch (this.cache.highlightedSquare.x - this.state.wordPos.x) {
+                        case 1:
+                            this.setState({
+                                wordDir: "x",
+                                wordStr: this.state.wordStr + this.props.game.currentlyDraggedLetter.letter
+                            });
+                            return true;
+
+                        case -1:
+                            this.setState({
+                                wordDir: "x",
+                                wordPos: { x: this.state.wordPos.x - 1, y: this.state.wordPos.y },
+                                wordStr: this.props.game.currentlyDraggedLetter.letter + this.state.wordStr
+                            });
+                            return true
+
+                        default:
+                            return false;
+                    }
+                } else {
+                    return false;
+                }                
+
+            } else {
+                // adding more letters
+
+                let theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd = null;
+
+                if (this.cache.highlightedSquare.x == this.state.wordPos.x && this.state.wordDir == "y") {
+                    theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd = this.cache.highlightedSquare.y - this.state.wordPos.y;
+                } else if (this.cache.highlightedSquare.y == this.state.wordPos.y && this.state.wordDir == "x") {
+                    theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd = this.cache.highlightedSquare.x - this.state.wordPos.x;
+                } else {
+                    return false;
+                }
+
+                if (theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd > 0) {
+                    theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd -= this.state.wordStr.length;
+                    theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd += 1;
+                }
+
+                // TODO: allow letters that are already on the board to be part of the new word
+
+                // console.log(`theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd: ${theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd}`);
+
+                switch (theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd) {
+                    case 1:
+                        this.setState({
+                            wordStr: this.state.wordStr + this.props.game.currentlyDraggedLetter.letter
+                        });
+                        return true;
+
+                    case -1:
+                        this.setState({
+                            wordPos: this.state.wordDir == "y" ? { x: this.state.wordPos.x, y: this.state.wordPos.y - 1 } : { x: this.state.wordPos.x - 1, y: this.state.wordPos.y },
+                            wordStr: this.props.game.currentlyDraggedLetter.letter + this.state.wordStr
+                        });
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            throw "this code should not have been reached";
         }
 
         return false;
     }
 
-    getCharAtGlobal(position) {
-        let placedLetter = this.state.placedLetters[`${position.x},${position.y}`];
-        if (placedLetter != undefined) {
-            return placedLetter.letter;
+    getIndexInWord(position) {
+        // convert the global board position into an index in the newly created word. if the position is not in the word or the word hasn't been started yet, returns -1.
+
+        if (this.state.wordPos == null || this.state.wordStr == null) {
+            return -1;
+        }
+
+        let i = null;
+
+        if (position.x == this.state.wordPos.x && position.y == this.state.wordPos.y) {
+            return 0;
+        } else if (this.state.wordDir == "y" && position.x == this.state.wordPos.x) {
+            i = position.y - this.state.wordPos.y;
+        } else if (this.state.wordDir == "x" && position.y == this.state.wordPos.y) {
+            i = position.x - this.state.wordPos.x;
+        } else {
+            return -1;
+        }
+
+        if (i < 0 || i >= this.state.wordStr.length) {
+            return -1;
+        } else {
+            return i;
+        }
+    }
+
+    getCharAtGlobal(position) {  
+
+        let wi = this.getIndexInWord(position);
+        if (wi >= 0) {
+            return this.state.wordStr[wi];
         }
 
         let x = position.x - this.state.boardRect.x;
