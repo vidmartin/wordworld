@@ -1,0 +1,67 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using WordWorldWebApp.Game;
+
+namespace WordWorldWebApp.Services
+{
+    public class BoardProvider
+    {
+        private readonly Dictionary<string, Board> _boards = new Dictionary<string, Board>();
+        private readonly Dictionary<Board, string> _wordSets = new Dictionary<Board, string>();
+        private readonly Dictionary<Board, string> _letterBags = new Dictionary<Board, string>();
+       
+        public string DefaultBoardKey { get; set; }
+
+        private class _BoardConfigurer : IBoardConfigurer
+        {
+            private readonly BoardProvider _parent;
+            private readonly Board _board;
+
+            public _BoardConfigurer(BoardProvider parent, Board board)
+            {
+                _parent = parent;
+                _board = board;
+            }
+
+            public IBoardConfigurer UseLetterBag(string key)
+            {
+                _parent._letterBags[_board] = key;
+
+                return this;
+            }
+
+            public IBoardConfigurer UseWordSet(string key)
+            {
+                _parent._wordSets[_board] = key;
+
+                return this;
+            }
+        }
+
+        public BoardProvider AddBoard(string key, Board board, Action<IBoardConfigurer> configure)
+        {
+            _boards[key] = board;
+
+            configure(new _BoardConfigurer(this, board));
+
+            return this;
+        }
+
+        public BoardProvider SetDefaultBoard(string defaultBoardKey)
+        {
+            DefaultBoardKey = defaultBoardKey;
+
+            return this;
+        }
+
+        public Board GetBoard(string key)
+        {
+            return _boards[key];
+        }
+
+        public string WordSetOf(Board board) => _wordSets[board];
+        public string LetterBagOf(Board board) => _letterBags[board];
+    }
+}

@@ -1,0 +1,45 @@
+﻿
+@model WordWorldWebApp.Models.PlayModel
+
+<html>
+<head>
+
+    <title>WordWorld</title>
+
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" >
+
+    <script type="text/javascript">
+
+        // in this script, we set some global variables which are then read by React components
+
+        // the player's token - could be retrieved from query params, but why not pass it through MVC?
+        var PLAYER_TOKEN = "@Model.Token";
+
+        // the initial state of the game
+        var GAME_INITIAL = {
+            score: @Model.PlayerStatus.Score,
+            inventory: @Json.Serialize(Model.PlayerStatus.Inventory.Select((ch, i) => new { key = i, letter = ch })),
+            origin: @Json.Serialize(Model.Origin),
+            usedLetterKeys: [],
+            lettersToAnimate: 0,
+            currentlyDraggedLetter: null
+        };
+
+        var BOARD_SIZE = @Json.Serialize(Model.BoardSize);
+
+    </script>
+
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/16.13.0/umd/react.development.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.13.0/umd/react-dom.development.js"></script>
+    <script src="@Url.Content("~/js/jquery/jquery.js")"></script>
+    <script type="module" src="@Url.Content("~/js/wordworld/render.jsx")"></script>
+
+</head>
+    <body>
+        <div id="react-target">
+            <!-- this is where render.jsx will render all the components -->
+        </div>
+    </body>
+</html>
