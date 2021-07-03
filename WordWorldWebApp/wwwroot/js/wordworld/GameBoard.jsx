@@ -39,6 +39,8 @@ export class GameBoard extends React.Component {
             wordDir: null
         };
 
+        this.wordStack = [];
+
         this.cache = {
             fetchingBoardRequest: null,
             isDragging: false,
@@ -47,6 +49,7 @@ export class GameBoard extends React.Component {
             highlightedSquare: null
         };
 
+        // javascript aneb fujky fujky
         this.isMouseOverCanvas = this.isMouseOverCanvas.bind(this);
         this.draw = this.draw.bind(this);
         this.fetchBoard = this.fetchBoard.bind(this);
@@ -58,6 +61,10 @@ export class GameBoard extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.getCellSize = this.getCellSize.bind(this);
         this.dropLetter = this.dropLetter.bind(this);
+        this._dropLetter = this._dropLetter.bind(this);
+        this.extendWord = this.extendWord.bind(this);
+        this.getWord = this.getWord.bind(this);
+        this.setWord = this.setWord.bind(this);
 
         window.addEventListener("resize", this.draw);
         window.addEventListener("mousemove", this.handleMouseMove);
@@ -260,11 +267,24 @@ export class GameBoard extends React.Component {
         };
     }
 
-    dropLetter() {
-        if (this.isMouseOverCanvas() == false) {
-            return false;
-        }
+    getWord() {
+        return {
+            wordDir: this.state.wordDir,
+            wordPos: this.state.wordPos,
+            wordStr: this.state.wordStr
+        };
+    }
 
+    setWord(wordObject, update = false) {
+        this.state.wordDir = wordObject.wordDir;
+        this.state.wordPos = wordObject.wordPos;
+        this.state.wordStr = wordObject.wordStr;
+        if (update) {
+            this.forceUpdate();
+        }
+    }
+
+    _dropLetter() {
         if (this.getCharAtGlobal(this.cache.highlightedSquare) == " ") {
             //this.setState({
             //    placedLetters: {
@@ -286,53 +306,25 @@ export class GameBoard extends React.Component {
             } else if (this.state.wordDir == null) {
                 // second letter placed - direction set
 
+                let rememberedState = this.getWord() // remember current state of word in case this fails
+
                 if (this.cache.highlightedSquare.x == this.state.wordPos.x) {
-                    // vertical dir
-
-                    switch (this.cache.highlightedSquare.y - this.state.wordPos.y) {
-                        case 1:
-                            this.setState({
-                                wordDir: "y",
-                                wordStr: this.state.wordStr + this.props.game.currentlyDraggedLetter.letter
-                            });
-                            return true;
-
-                        case -1:
-                            this.setState({
-                                wordDir: "y",
-                                wordPos: { x: this.state.wordPos.x, y: this.state.wordPos.y - 1 },
-                                wordStr: this.props.game.currentlyDraggedLetter.letter + this.state.wordStr
-                            });
-                            return true
-
-                        default:
-                            return false;
-                    }
+                    this.state.wordDir = "y"; // vertical dir
                 } else if (this.cache.highlightedSquare.y == this.state.wordPos.y) {
-                    // horizontal dir
-
-                    switch (this.cache.highlightedSquare.x - this.state.wordPos.x) {
-                        case 1:
-                            this.setState({
-                                wordDir: "x",
-                                wordStr: this.state.wordStr + this.props.game.currentlyDraggedLetter.letter
-                            });
-                            return true;
-
-                        case -1:
-                            this.setState({
-                                wordDir: "x",
-                                wordPos: { x: this.state.wordPos.x - 1, y: this.state.wordPos.y },
-                                wordStr: this.props.game.currentlyDraggedLetter.letter + this.state.wordStr
-                            });
-                            return true
-
-                        default:
-                            return false;
-                    }
+                    this.state.wordDir = "x"; // horizontal dir
                 } else {
                     return false;
-                }                
+                }
+
+                this.extendWord(); // include adjacent letters in word
+
+                // try to put the new letter - call this again, but now direction is specified
+                if (this._dropLetter() == true) {
+                    return true;
+                } else {
+                    this.setWord(rememberedState, true); // restore the remembered state of word
+                    return false;
+                }
 
             } else {
                 // adding more letters
@@ -352,9 +344,7 @@ export class GameBoard extends React.Component {
                     theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd += 1;
                 }
 
-                // TODO: allow letters that are already on the board to be part of the new word
-
-                // console.log(`theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd: ${theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd}`);
+                // DONE: allow letters that are already on the board to be part of the new word
 
                 switch (theVariableThatDeterminesWhetherWeArePuttingALetterToTheFrontOfTheWordOrToTheEnd) {
                     case 1:
@@ -379,6 +369,70 @@ export class GameBoard extends React.Component {
         }
 
         return false;
+    }
+
+    dropLetter() {
+        if (this.isMouseOverCanvas() == false) {
+            return false;
+        }
+
+        if (this._dropLetter()) {
+            this.extendWord();
+            return true;
+        }
+
+        return false;
+    }
+
+    // there are characters on the board immediately after or before the word we are building, add these characters to the word
+    extendWord(dir = null) {        
+        let step = null;
+
+        switch (dir ?? this.state.wordDir) {
+            case "y":
+                step = { x: 0, y: 1 };
+                break;
+            case "x":
+                step = { x: 1, y: 0 };
+                break;
+            case null:
+                return;
+            default:
+                throw "peculiar things are happening";
+        }
+
+        let stepFunc = (pos, i) => ({ x: pos.x + step.x * i, y: pos.y + step.y * i });
+
+        let endPos = stepFunc(this.state.wordPos, this.state.wordStr.length);        
+
+        while (true) {
+            // while there are characters at the end of the word, at them to it
+
+            let char = this.getCharAtGlobal(endPos, false);
+
+            if (char == " " || char == null) {
+                break;
+            }
+
+            this.state.wordStr += char;
+            endPos = stepFunc(endPos, 1);
+        }
+
+        let startPos = stepFunc(this.state.wordPos, -1);
+
+        while (true) {
+            // while there are characters at the start of the word, add them to it
+
+            let char = this.getCharAtGlobal(startPos, false);
+
+            if (char == " " || char == null) {
+                break;
+            }
+
+            this.state.wordStr = char + this.state.wordStr;
+            this.state.wordPos = startPos;
+            startPos = stepFunc(startPos, -1);
+        }
     }
 
     getIndexInWord(position) {
@@ -407,11 +461,13 @@ export class GameBoard extends React.Component {
         }
     }
 
-    getCharAtGlobal(position) {  
+    getCharAtGlobal(position, includeOurWord = true) {  
 
-        let wi = this.getIndexInWord(position);
-        if (wi >= 0) {
-            return this.state.wordStr[wi];
+        if (includeOurWord == true) {
+            let wi = this.getIndexInWord(position);
+            if (wi >= 0) {
+                return this.state.wordStr[wi];
+            }
         }
 
         let x = position.x - this.state.boardRect.x;
