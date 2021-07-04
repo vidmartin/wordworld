@@ -14,13 +14,10 @@ export class Letter extends React.Component {
     }
 
     componentDidMount() {
-        // console.log(`componentDidMount called (letter: ${this.props.letter}, key: ${this.props.id}, index: ${this.props.index}, onUpdated: ${this.props.onMounted})`);
-        
         this.props.onMounted?.(this);
     }
 
     show() {
-        // console.log(`show called (letter: ${this.props.letter}, key: ${this.props.id}, index: ${this.props.index})`);
         this.setState({
             hidden: false
         });
@@ -28,10 +25,12 @@ export class Letter extends React.Component {
 
     render() {
         if (this.props.visible == false) {
+            // TODO: při vrácení písmenek udělat příjemnou animaci přímo z místa nad odpovídajícím políčkem na hracím poli??
+
             return (
-                <div className="letter"
+                <div className="letter smooth-slide"
                     ref={this.div}
-                    style={{ display: "none" }}>
+                    style={{ visibility: "hidden", opacity: 0, transform: "translateY(30%)" }}>
                     {this.props.letter.letter.toUpperCase()}
                 </div>
             );

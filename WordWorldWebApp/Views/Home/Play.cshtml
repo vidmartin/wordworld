@@ -29,6 +29,11 @@
 
         var BOARD_SIZE = @Json.Serialize(Model.BoardSize);
 
+        var STATUS_ERRORS = {
+            "word_too_short": "Word is too short!",
+            "unknown_word": "I don't know this word"
+        }
+
     </script>
 
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/16.13.0/umd/react.development.js"></script>

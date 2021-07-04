@@ -45,10 +45,11 @@ body {
 
 .game-menu {
     position: relative;
-
     flex-grow: 0;
     height: 5cm;
     background-color: var(--color-white);
+    border-top: 4px solid #ededed;
+    /* background-color: #f7f7f7; */
 }
 
 .game-menu-left {
@@ -143,4 +144,58 @@ button:active {
 
 .nok {
     background-color: var(--color-nok);
+}
+
+.score {
+    font-size: 0.6cm;
+    transition: transform 0.3s;
+    z-index: 5;
+    font-weight: normal;
+    width: 2cm;
+    height: 2cm;
+    background-color: var(--color-filled-cell);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.message-board {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 10cm;
+}
+
+.message {
+    position: relative;
+    width: 100%;
+
+    padding: 0.25cm;
+    font-size: 0.5cm;
+
+    animation-name: slide-in-from-left;
+    animation-duration: 0.25s;
+
+    color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    opacity: 0.8;
+}
+
+@keyframes slide-in-from-left {
+    from {
+        transform: translateY(-3cm);
+        opacity: 0;
+    }
+
+    to {
+        transform: none;        
+    }
 }

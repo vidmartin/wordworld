@@ -1,5 +1,6 @@
 ﻿
 import { Letter } from "./Letter.jsx";
+import { Score } from "./Score.jsx";
 import { getMousePos } from "./mouse.js";
 
 export class GameMenu extends React.Component {
@@ -115,7 +116,7 @@ export class GameMenu extends React.Component {
                 </div>
 
                 <div className="game-menu-right">
-
+                    <Score score={this.props.game.score} />
                 </div>
 
             </div>

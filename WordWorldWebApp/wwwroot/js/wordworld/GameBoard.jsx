@@ -1,5 +1,6 @@
 ﻿
 import { cssVar } from "./cssvar.js";
+import { Letter } from "./Letter.jsx";
 import { getMousePos } from "./mouse.js";
 
 // props: board array, board section top + left + width + height
@@ -126,18 +127,19 @@ export class GameBoard extends React.Component {
                 for (let y = 0; y < this.state.boardRect.h; y++) {
                     // coordinates relative to entire board (x & y vars are relative to current section)
                     let actualPos = { x: x + this.state.boardRect.x, y: y + this.state.boardRect.y };
-                    let letterChar = this.getCharAtGlobal(actualPos);
 
-                    //let placedLetter = this.state.placedLetters[`${actualPos.x},${actualPos.y}`];                   
+                    let letterChar = this.getCharAtGlobal(actualPos, false);
 
-                    //if (placedLetter == undefined) {
-                    //    context.fillStyle = this.getCellFillColor(actualPos, letterChar);
-                    //} else {
-                    //    context.fillStyle = PLACED_INVALID_CELL_COLOR;
-                    //    // letterChar = placedLetter.letter;
-                    //}   
+                    if (letterChar == null) {
+                        continue;
+                    }
 
                     context.fillStyle = this.getCellFillColor(actualPos, letterChar);
+                    
+                    if (letterChar == " " || letterChar == "\0") {
+                        letterChar = this.getCharAtGlobal(actualPos, true);                        
+                    }
+
                     context.fillRect(actualPos.x - CELL_RADIUS, actualPos.y - CELL_RADIUS, CELL_RADIUS * 2, CELL_RADIUS * 2);
 
                     context.fillStyle = CELL_FONT_COLOR;
@@ -150,23 +152,28 @@ export class GameBoard extends React.Component {
     }
 
     getCellFillColor(position, letterChar) {
-        if (this.getIndexInWord(position) >= 0) {
-            return PLACED_INVALID_CELL_COLOR;
+        if (letterChar == " " || letterChar == "\0") {
+            if (this.getIndexInWord(position) >= 0) {
+                return PLACED_INVALID_CELL_COLOR;
+            }
+
+            if (this.cache.highlightedSquare != null
+                && position.x == this.cache.highlightedSquare.x
+                && position.y == this.cache.highlightedSquare.y) {
+                return HIGHLIGHT_EMPTY_CELL_COLOR;
+            } else {
+                return EMPTY_CELL_COLOR;
+            }
         }
 
-        if (this.cache.highlightedSquare != null
-            && position.x == this.cache.highlightedSquare.x
-            && position.y == this.cache.highlightedSquare.y) {
-            return HIGHLIGHT_EMPTY_CELL_COLOR;
-        } else {
-            return (letterChar == " " || letterChar == "\0") ? EMPTY_CELL_COLOR : FILLED_CELL_COLOR;
-        }
+        return FILLED_CELL_COLOR;
     }
 
     componentDidMount() {
-        this.draw();
+        this.fetchBoard();
+        //this.draw();
         
-        setInterval(this.fetchBoard, 500);
+        setInterval(this.fetchBoard, 500); // reguraly download board information
     }
 
     componentDidUpdate() {
@@ -271,6 +278,10 @@ export class GameBoard extends React.Component {
     }
 
     getWord() {
+        if (this.state.wordPos == null || this.state.wordStr == null) {
+            return null;
+        }
+
         return {
             wordDir: this.state.wordDir,
             wordPos: this.state.wordPos,
@@ -484,5 +495,39 @@ export class GameBoard extends React.Component {
             wordPos: null,
             wordStr: null
         });
+    }
+
+    getWordSafeDir() {
+        // in case we are trying to finish the word with only one letter, direction isn't decided yet
+        // if this.state.wordDir is null, this method will return a word with the direction, in which a longer word is formed
+
+        let rememberedWord = this.getWord();
+
+        if (rememberedWord == null) {
+            return null;
+        }
+
+        if (rememberedWord.wordDir != null) {
+            // if direction is filled in, we have no reason to infer it
+            return rememberedWord;
+        }
+
+        try {
+            // if direction isn't specified yet, we decide it based on in which direction a longer word is formed
+            this.state.wordDir = "y";
+            this.extendWord();
+            let yWord = this.getWord();
+
+            this.setWord(rememberedWord, false);
+
+            this.state.wordDir = "x";
+            this.extendWord();
+            let xWord = this.getWord();
+
+            return (yWord.wordStr.length > xWord.wordStr.length) ? yWord : xWord;
+
+        } finally {
+            this.setWord(rememberedWord, false); // restore original state
+        }        
     }
 }

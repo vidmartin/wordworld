@@ -1,6 +1,7 @@
 ﻿
 import { GameMenu } from "./GameMenu.jsx";
 import { GameBoard } from "./GameBoard.jsx";
+import { MessageBoard } from "./MessageBoard.jsx";
 
 export class GameContainer extends React.Component {
     constructor(props) {
@@ -127,9 +128,7 @@ export class GameContainer extends React.Component {
     }
 
     handleWordConfirm() {
-        // TODO: implement
-
-        let word = this.board.current.getWord();
+        let word = this.board.current.getWordSafeDir();
 
         // get the indexes of letters that were used in the new word
         let usedIndices = this.state.game.usedLetterKeys.map(val1 =>
@@ -147,6 +146,11 @@ export class GameContainer extends React.Component {
                 console.log(data);
 
                 if (data.status != "ok") {
+                    if (data.status in STATUS_ERRORS) {
+                        MessageBoard.writeError(STATUS_ERRORS[data.status]);
+                    } else {
+                        MessageBoard.writeError(`[${data.status}]`);
+                    }
                     console.log("nope 2");
                     return; // backend isn't happy
                 }
@@ -157,6 +161,8 @@ export class GameContainer extends React.Component {
                         score: data.data.score
                     }
                 });
+
+                MessageBoard.writeOk("Good job!"); // TODO: more messages depending on acquired score?
 
                 console.log(":)");
                 this.board.current.fetchBoard();
@@ -178,6 +184,7 @@ export class GameContainer extends React.Component {
     render() {
         return (
             <div className="game-container">
+                <MessageBoard id="default" />
                 <GameBoard game={this.state.game} ref={this.board}
                     onLetterPlop={this.handleLetterPlop} />
                 <GameMenu game={this.state.game}
