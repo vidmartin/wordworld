@@ -131,7 +131,11 @@ export class GameContainer extends React.Component {
 
         let word = this.board.current.getWord();
 
-        fetch(`/game/write?token=${PLAYER_TOKEN}&word=${word.wordStr}&direction=${word.wordDir}&x=${word.wordPos.x}&y=${word.wordPos.y}`)
+        // get the indexes of letters that were used in the new word
+        let usedIndices = this.state.game.usedLetterKeys.map(val1 =>
+            this.state.game.inventory.findIndex(val2 => val2.key == val1));
+
+        fetch(`/game/write?token=${PLAYER_TOKEN}&word=${word.wordStr}&direction=${word.wordDir}&x=${word.wordPos.x}&y=${word.wordPos.y}&used=${usedIndices.join("_")}`)
             .then(async response => {
                 if (response.ok != true) {
                     console.log("nope 1");

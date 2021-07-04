@@ -18,7 +18,8 @@ namespace WordWorldWebApp.Services
                 Board = board;
                 Created = created;
 
-                _inventory = letters is List<char> l ? l : new List<char>(letters);
+                _inventory = // letters is List<char> l ? l : new List<char>(letters);
+                    letters is char[] arr ? arr : letters.ToArray();
             }
 
             public override string Token { get; }

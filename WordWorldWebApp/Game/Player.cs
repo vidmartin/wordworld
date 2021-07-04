@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WordWorldWebApp.Utils;
 
 namespace WordWorldWebApp.Game
 {
@@ -15,32 +16,32 @@ namespace WordWorldWebApp.Game
 
         public DateTime LastAction { get; set; }
 
-        protected List<char> _inventory;        
+        protected char[] _inventory;        
 
         public IEnumerable<char> Inventory => _inventory;
 
-        /// <summary>
-        /// if all 'oldLetters' exist in the player's inventory, they will be replaced with 'newLetters' and true will be
-        /// returned. otherwise, false will be returned.
-        /// </summary>
-        public bool ReplaceLetters(IEnumerable<char> oldLetters, IEnumerable<char> newLetters)
+        public bool ReplaceLetters(ISet<int> oldIndices, IEnumerable<char> newLetters)
         {
-            if (!oldLetters.All(_inventory.Contains))
+            if (oldIndices.Any(i => i < 0 || i >= _inventory.Length))
             {
                 return false;
             }
 
-            foreach (char ch in oldLetters)
-            {
-                _inventory.Remove(ch);
-            }
+            _inventory = _inventory.Index()
+                .Where(curr => !oldIndices.Contains(curr.index))
+                .Select(curr => curr.item)
+                .ToArray();
 
-            foreach (char ch in newLetters)
-            {
-                _inventory.Add(ch);
-            }
+            _inventory = _inventory
+                .Concat(newLetters)
+                .ToArray();
 
             return true;
+        }
+
+        public bool ReplaceLetters(int[] oldIndices, IEnumerable<char> newLetters)
+        {
+            return ReplaceLetters(oldIndices.ToHashSet(), newLetters);
         }
 
         public int Score { get; set; } = 0;        

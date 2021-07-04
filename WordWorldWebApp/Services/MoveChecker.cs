@@ -21,12 +21,12 @@ namespace WordWorldWebApp.Services
             _boardProvider = boardProvider;
         }
 
-        public int AssertMoveValidUnsafe(Player player, XY position, string direction, string word)
+        public void AssertMoveValidUnsafe(Player player, XY position, string direction, string word, out char[] placedLetters)
         {           
             var board = player.Board;
             var wordSet = _wordSetProvider.GetWordSet(_boardProvider.WordSetOf(board));
             var stepper = GetStepper(direction);
-            int placed = 0; // keep track of how many letters were placed by player
+            List<char> placed = new(); // keep track of how many letters were placed by player
 
             // some characters might come before the current word
             string precedingWord = "";
@@ -104,7 +104,7 @@ namespace WordWorldWebApp.Services
                             chdict.Remove(word[i]);
                         }
 
-                        placed += 1;
+                        placed.Add(word[i]);
 
                         continue;
                     }
@@ -120,7 +120,7 @@ namespace WordWorldWebApp.Services
                 }
             }
 
-            return placed;
+            placedLetters = placed.ToArray();            
         }
 
         private Func<XY, int, XY> GetStepper(string direction)
