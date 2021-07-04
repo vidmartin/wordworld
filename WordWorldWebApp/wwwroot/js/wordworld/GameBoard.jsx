@@ -65,6 +65,7 @@ export class GameBoard extends React.Component {
         this.extendWord = this.extendWord.bind(this);
         this.getWord = this.getWord.bind(this);
         this.setWord = this.setWord.bind(this);
+        this.clearWord = this.clearWord.bind(this);
 
         window.addEventListener("resize", this.draw);
         window.addEventListener("mousemove", this.handleMouseMove);
@@ -234,6 +235,8 @@ export class GameBoard extends React.Component {
             let x = this.state.origin.x + (ev.clientX - this.canvas.current.clientWidth / 2) / cellSize.x;
             let y = this.state.origin.y + (ev.clientY - this.canvas.current.clientHeight / 2) / cellSize.y;
 
+            // TODO: don't highlight, if placement would be invalid
+
             this.cache.highlightedSquare = { x: Math.round(x), y: Math.round(y) };
 
             this.draw();
@@ -286,12 +289,6 @@ export class GameBoard extends React.Component {
 
     _dropLetter() {
         if (this.getCharAtGlobal(this.cache.highlightedSquare) == " ") {
-            //this.setState({
-            //    placedLetters: {
-            //        ...this.state.placedLetters,
-            //        [`${this.cache.highlightedSquare.x},${this.cache.highlightedSquare.y}`]: this.props.game.currentlyDraggedLetter 
-            //    }
-            //});
 
             if (this.state.wordPos == null) {
                 // first letter placed - new word started
@@ -479,5 +476,13 @@ export class GameBoard extends React.Component {
         }
 
         return this.state.boardArray[i];
+    }
+
+    clearWord() {
+        this.setState({
+            wordDir: null,
+            wordPos: null,
+            wordStr: null
+        });
     }
 }

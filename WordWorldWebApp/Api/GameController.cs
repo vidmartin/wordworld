@@ -65,7 +65,10 @@ namespace WordWorldWebApp.Api
 
             return await board.DoAsync(() =>
             {
-                if (_moveChecker.AssertMoveValidUnsafe(player, (x, y), direction, word) <= 0)
+                // if there is a problem, this will throw; otherwise, it returns how many letters were placed by player
+                int placedLetters = _moveChecker.AssertMoveValidUnsafe(player, (x, y), direction, word);
+
+                if (placedLetters <= 0)
                 {
                     // if no letters from players inventory were used (value returned by AssertMoveValidAsync), something is not right
                     throw new InvalidPlacementException(x, y);
@@ -84,7 +87,7 @@ namespace WordWorldWebApp.Api
                     lock (player)
                     {
                         player.Score += _wordRater.Rate(word);
-                        player.ReplaceLetters(word, _letterBagProvider.GetLetterBag(_boardProvider.LetterBagOf(board)).Pull(word.Length));
+                        player.ReplaceLetters(word, _letterBagProvider.GetLetterBag(_boardProvider.LetterBagOf(board)).Pull(word.Length)); // WIP: fix this (word length doesn't always match the count of used letters)
                     }
 
                     return Ok(ApiResponse.Success(PlayerStatus.From(player)));

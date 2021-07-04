@@ -18,6 +18,8 @@ export class GameMenu extends React.Component {
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleMouseUp = this.handleMouseUp.bind(this);
         this.handleLetterMouseDown = this.handleLetterMouseDown.bind(this);
+        this.handleWordConfirmClick = this.handleWordConfirmClick.bind(this);
+        this.handleWordCancelClick = this.handleWordCancelClick.bind(this);
 
         window.addEventListener("mousemove", this.handleMouseMove);
         window.addEventListener("mouseup", this.handleMouseUp);
@@ -93,17 +95,38 @@ export class GameMenu extends React.Component {
             // this vicious cycle will repeat until lettersToAnimate is zero
             this.cache.letterSlideInReady = false;
             setTimeout(() => {
-                this.props.onLetterSlideIn?.();
                 this.cache.letterSlideInReady = true; // re-enable this
+                this.props.onLetterSlideIn?.();                
             }, 200);            
         }
 
         return (
             <div className="game-menu">
-                <div className="letter-container">
-                    {letterItems}
+
+                <div className="game-menu-left">
+                    <div className="letter-container" style={{ width: `${2 * letterItems.length}cm` }}>
+                        {letterItems}
+                    </div>
+
+                    <div className="buttons-vertical-panel" style={{ width: "3cm", zIndex: 10 }}>
+                        <button className="ok" onClick={this.handleWordConfirmClick}>OK</button>
+                        <button className="nok" onClick={this.handleWordCancelClick}> NOK</button>
+                    </div>
                 </div>
+
+                <div className="game-menu-right">
+
+                </div>
+
             </div>
         );
+    }
+
+    handleWordConfirmClick() {
+        this.props.onWordConfirm?.();
+    }
+
+    handleWordCancelClick() {
+        this.props.onWordCancel?.();
     }
 }

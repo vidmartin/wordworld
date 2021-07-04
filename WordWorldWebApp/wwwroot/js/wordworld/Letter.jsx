@@ -59,7 +59,7 @@ export class Letter extends React.Component {
                     ref={this.div}
                     style={{ left: `${this.props.hiddenLeft}`, opacity: 0 }}
                     onMouseDown={this.handleMouseDown}>
-                    {this.props.letter}
+                    {this.props.letter.letter.toUpperCase()}
                 </div>
             );
         }

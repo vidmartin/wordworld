@@ -21,6 +21,8 @@ export class GameContainer extends React.Component {
         this.handleLetterDrag = this.handleLetterDrag.bind(this);
         this.handleLetterDrop = this.handleLetterDrop.bind(this);
         this.handleDraggedLetterSet = this.handleDraggedLetterSet.bind(this);
+        this.handleWordConfirm = this.handleWordConfirm.bind(this);
+        this.handleWordCancel = this.handleWordCancel.bind(this);
     }
 
     componentDidMount() {
@@ -33,13 +35,14 @@ export class GameContainer extends React.Component {
     // (newLetters je počet písmenek, která byla vyměněna - to je použito pro animaci nově vylosovaných písmen)
     // ((český překlad uveden v zájmu jednoznačnosti, anžto po anglicku není jasné jestli 'drawn' znamená 'nakreslený' nebo 'vylosovaný'))
     fetchStatus() {
-        let oldLetters = this.state.game.inventory.length - this.state.game.usedLetters.length; // how many letters will stay
+        // WIP: sometimes this doesn't work correctly and results in the client inventory not matching the server inventory => FIX!!!
+        // likely culprit: when confirming word, the server may use same letter, but at different index
+
+        let oldLetters = this.state.game.inventory.length - this.state.game.usedLetterKeys.length + 1; // how many letters will stay
 
         if (this.cache.fetchingStatusRequest != null) {
             // we don't wanna be fetching status multiple times at once
-            console.log("aborting ongoing player status request");
             this.cache.fetchingStatusRequest.abort();
-            console.log("aborted ongoing player status request");
         }
 
         // TODO: do this without jQuery?
@@ -69,7 +72,6 @@ export class GameContainer extends React.Component {
         }).fail(() => {
             console.log("status fetch failed");
         }).always(() => {
-            console.log("status fetch completed, setting fetchingStatusRequest to null");
             this.cache.fetchingStatusRequest = null;
         });
     }
@@ -124,6 +126,51 @@ export class GameContainer extends React.Component {
         }
     }
 
+    handleWordConfirm() {
+        // TODO: implement
+
+        let word = this.board.current.getWord();
+
+        fetch(`/game/write?token=${PLAYER_TOKEN}&word=${word.wordStr}&direction=${word.wordDir}&x=${word.wordPos.x}&y=${word.wordPos.y}`)
+            .then(async response => {
+                if (response.ok != true) {
+                    console.log("nope 1");
+                    return; // HTTP fail
+                }
+
+                let data = await response.json();
+
+                console.log(data);
+
+                if (data.status != "ok") {
+                    console.log("nope 2");
+                    return; // backend isn't happy
+                }
+
+                this.setState({
+                    game: {
+                        ...this.state.game,
+                        score: data.data.score
+                    }
+                });
+
+                console.log(":)");
+                this.board.current.fetchBoard();
+                this.board.current.clearWord();                
+                this.fetchStatus();
+            });
+    }
+
+    handleWordCancel() {
+        this.board.current.clearWord();
+        this.setState({
+            game: {
+                ...this.state.game,
+                usedLetterKeys: []
+            }
+        });
+    }
+
     render() {
         return (
             <div className="game-container">
@@ -133,7 +180,9 @@ export class GameContainer extends React.Component {
                     onLetterSlideIn={this.handleLetterSlideIn}
                     onLetterDrag={this.handleLetterDrag}
                     onLetterDrop={this.handleLetterDrop}
-                    onDraggedLetterSet={this.handleDraggedLetterSet} />
+                    onDraggedLetterSet={this.handleDraggedLetterSet}
+                    onWordConfirm={this.handleWordConfirm}
+                    onWordCancel={this.handleWordCancel} />
             </div>
         );
     }

@@ -4,8 +4,10 @@
     --color-empty-cell: #e0e0e0;
     --color-filled-cell: #294dcf;
     --color-highlight-empty-cell: #c2c2c2;
-    --color-placed-letter-invalid: #d4061e;
-    --color-placed-letter-valid: #1aa60d;
+    --color-ok: #1aa60d;
+    --color-nok: #d4061e;
+    --color-placed-letter-valid: var(--color-ok);
+    --color-placed-letter-invalid: var(--color-nok);
 }
 
 body {
@@ -42,16 +44,37 @@ body {
 }
 
 .game-menu {
+    position: relative;
+
     flex-grow: 0;
     height: 5cm;
     background-color: var(--color-white);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+}
 
+.game-menu-left {
+    position: absolute;
+    left: 0;
+    height: 100%;
     padding-left: 1.5cm;
     padding-right: 1.5cm;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.game-menu-right {
+    position: absolute;
+    right: 0;
+    height: 100%;
+    padding-left: 1.5cm;
+    padding-right: 1.5cm;
+
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
 }
 
 .letter-container {
@@ -67,7 +90,7 @@ body {
     padding: 0.25cm;
     background-color: var(--color-filled-cell);
     color: var(--color-white);
-    border-radius: 0.25cm;
+    /* border-radius: 0.25cm; */
     margin: 0;
     cursor: pointer;
 
@@ -86,4 +109,38 @@ body {
 
 .smooth-slide {
     transition: left 0.5s, top 0.5s, opacity 0.5s, transform 0.5s;
+}
+
+button {
+    cursor: pointer;
+    padding: 0.25cm;
+    margin: 0.1cm;
+    font-size: 0.5cm;
+    border: none;
+    color: white;
+    font-family: "Roboto Slab", serif;
+}
+
+button:hover {
+    filter: brightness(90%);
+}
+
+button:active {
+    filter: brightness(80%);
+}
+
+.buttons-vertical-panel {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: column;
+
+}
+
+.ok {
+    background-color: var(--color-ok);
+}
+
+.nok {
+    background-color: var(--color-nok);
 }
