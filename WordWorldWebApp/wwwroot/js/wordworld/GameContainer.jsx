@@ -2,6 +2,7 @@
 import { GameMenu } from "./GameMenu.jsx";
 import { GameBoard } from "./GameBoard.jsx";
 import { MessageBoard } from "./MessageBoard.jsx";
+import { getCelebratoryStatementFromScore } from "./eulogies.js";
 
 export class GameContainer extends React.Component {
     constructor(props) {
@@ -155,6 +156,8 @@ export class GameContainer extends React.Component {
                     return; // backend isn't happy
                 }
 
+                let deltaScore = data.data.score - this.state.game.score;
+
                 this.setState({
                     game: {
                         ...this.state.game,
@@ -162,7 +165,7 @@ export class GameContainer extends React.Component {
                     }
                 });
 
-                MessageBoard.writeOk("Good job!"); // TODO: more messages depending on acquired score?
+                MessageBoard.writeOk(getCelebratoryStatementFromScore(deltaScore)); 
 
                 console.log(":)");
                 this.board.current.fetchBoard();
@@ -186,7 +189,8 @@ export class GameContainer extends React.Component {
             <div className="game-container">
                 <MessageBoard id="default" />
                 <GameBoard game={this.state.game} ref={this.board}
-                    onLetterPlop={this.handleLetterPlop} />
+                    onLetterPlop={this.handleLetterPlop}
+                    onWordCancel={this.handleWordCancel} />
                 <GameMenu game={this.state.game}
                     onLetterSlideIn={this.handleLetterSlideIn}
                     onLetterDrag={this.handleLetterDrag}

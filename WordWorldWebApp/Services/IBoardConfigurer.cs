@@ -9,5 +9,6 @@ namespace WordWorldWebApp.Services
     {
         IBoardConfigurer UseWordSet(string key);
         IBoardConfigurer UseLetterBag(string key);
+        IBoardConfigurer UseWordRater(string key);
     }
 }

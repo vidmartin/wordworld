@@ -32,7 +32,11 @@
         var STATUS_ERRORS = {
             "word_too_short": "Word is too short!",
             "unknown_word": "I don't know this word"
-        }
+        };
+
+        var LETTER_SCORES = @Json.Serialize(Model.CharactersWithScores);
+
+        var LANGUAGE = "@Model.Language";
 
     </script>
 

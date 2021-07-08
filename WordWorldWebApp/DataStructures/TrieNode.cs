@@ -9,6 +9,8 @@ namespace WordWorldWebApp.DataStructures
     {
         private static (char, char)[] ParseLetterRanges(string letterRanges)
         {
+            // převést řezězec ve formátu např. "a-z,č-ž" na odpovídající seznam dvojic znaků, aby bylo každému znaku možno přiřadit unikátní číselnou hodnotu, které půjdou po sobě
+
             List<(char, char)> list = new List<(char, char)>();
 
             foreach (string s in letterRanges.Split(','))
@@ -142,12 +144,14 @@ namespace WordWorldWebApp.DataStructures
                     return false;
                 }
 
+                // add node at the end of the linked list of children
                 if (curr.node._next == null)
                 {
                     matchingNode = curr.node._next = MakeChild(letter);
 
                     if (curr.i + 2 >= HowManyChildrenToMakeArray)
                     {
+                        // at some point, we stop using the linked list and start using an array, to keep some balance between time and memory this uses
                         InitArray();
                     }
 

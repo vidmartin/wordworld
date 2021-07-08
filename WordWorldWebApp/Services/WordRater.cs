@@ -9,6 +9,8 @@ namespace WordWorldWebApp.Services
     {
         private Dictionary<char, int> _charScores;
 
+        public Dictionary<char, int> CharMap => _charScores;
+
         public WordRater LoadCharMap(string charmap)
         {
             _charScores = new Dictionary<char, int>();
@@ -31,9 +33,14 @@ namespace WordWorldWebApp.Services
             return _charScores[char.ToLower(ch)];
         }
 
-        public int Rate(string s)
+        //public int Rate(string s)
+        //{
+        //    return s.Sum(Rate) * s.Length;
+        //}
+
+        public int Rate(char[] usedChars, int totalWordLength)
         {
-            return s.Sum(Rate) * s.Length;
+            return usedChars.Sum(Rate) * totalWordLength;
         }
     }
 }

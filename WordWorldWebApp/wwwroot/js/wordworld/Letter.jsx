@@ -24,6 +24,9 @@ export class Letter extends React.Component {
     }
 
     render() {
+
+        let scoreElement = (<span className="letter-score">{LETTER_SCORES[this.props.letter.letter]}</span>);
+
         if (this.props.visible == false) {
             // TODO: při vrácení písmenek udělat příjemnou animaci přímo z místa nad odpovídajícím políčkem na hracím poli??
 
@@ -32,6 +35,7 @@ export class Letter extends React.Component {
                     ref={this.div}
                     style={{ visibility: "hidden", opacity: 0, transform: "translateY(30%)" }}>
                     {this.props.letter.letter.toUpperCase()}
+                    {scoreElement}
                 </div>
             );
         }
@@ -46,6 +50,7 @@ export class Letter extends React.Component {
                     ref={this.div}
                     style={{ /* position: "fixed", */ left: `${/* this.props.posX */ posX}px`, top: `${/* this.props.posY */ posY}px`, opacity: 0.5 }} >
                     {this.props.letter.letter.toUpperCase()}
+                    {scoreElement}
                 </div>
             );
         }
@@ -59,6 +64,7 @@ export class Letter extends React.Component {
                     style={{ left: `${this.props.hiddenLeft}`, opacity: 0 }}
                     onMouseDown={this.handleMouseDown}>
                     {this.props.letter.letter.toUpperCase()}
+                    {scoreElement}
                 </div>
             );
         }
@@ -71,6 +77,7 @@ export class Letter extends React.Component {
                 style={{ left: `${this.props.index * 2}cm` }}
                 onMouseDown={this.handleMouseDown} >
                 {this.props.letter.letter.toUpperCase()}
+                {scoreElement}
             </div>
         );
     }

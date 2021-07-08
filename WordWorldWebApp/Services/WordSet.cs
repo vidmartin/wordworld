@@ -26,7 +26,7 @@ namespace WordWorldWebApp.Services
 
             foreach (var line in File.ReadLines(filename).Select(s => s.Trim().Trim('\0')))
             { 
-                if (line.Contains('\0') || line.Any(ch => char.IsWhiteSpace(ch)))
+                if (string.IsNullOrWhiteSpace(line) || line.Any(ch => char.IsWhiteSpace(ch)))
                 {
                     continue;
                 }

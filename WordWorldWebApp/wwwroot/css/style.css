@@ -88,7 +88,7 @@ body {
     /* font-weight: bold; */
     width: 1cm;
     height: 1cm;
-    padding: 0.25cm;
+    padding: /* 0.25cm; */ 0.2cm 0.3cm 0.3cm 0.2cm;
     background-color: var(--color-filled-cell);
     color: var(--color-white);
     /* border-radius: 0.25cm; */
@@ -102,6 +102,14 @@ body {
     justify-content: center;
     align-items: center;
     transition: opacity 0.5s;
+}
+
+.letter-score {
+    position: absolute;
+    bottom: 0.1cm;
+    right: 0.2cm;
+    font-size: 0.3cm;
+    color: white;
 }
 
 .v-center {

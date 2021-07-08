@@ -9,6 +9,7 @@ using WordWorldWebApp.Models;
 using WordWorldWebApp.Game;
 using WordWorldWebApp.Extensions;
 using WordWorldWebApp.DataStructures;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace WordWorldWebApp.Api
 {
@@ -30,10 +31,12 @@ namespace WordWorldWebApp.Api
             // return View();
         }
 
-        public async Task<IActionResult> Play([FromQuery] string token, [FromQuery] string board,
+        [Route("/play/{board?}")]
+        public async Task<IActionResult> Play([FromQuery] string token, [FromRoute] string board,
             [FromServices] PlayerManager playerManager,
             [FromServices] BoardProvider boardProvider,
-            [FromServices] LetterBagProvider letterBagProvider)
+            [FromServices] LetterBagProvider letterBagProvider,
+            [FromServices] WordRaterProvider wordRaterProvider)
         {
             var boardInstance = boardProvider.GetBoard(board ?? boardProvider.DefaultBoardKey);
 
@@ -63,10 +66,26 @@ namespace WordWorldWebApp.Api
                 Origin = origin,
                 BoardArray = "",
                 BoardRect = new Rect(0, 0, 0, 0),
-                BoardSize = new Vec2i(boardInstance.Width, boardInstance.Height)
+                BoardSize = new Vec2i(boardInstance.Width, boardInstance.Height),
+                CharactersWithScores = wordRaterProvider.GetWordRater(boardProvider.WordRaterOf(boardInstance)).CharMap,
+                Language = boardProvider.WordSetOf(boardInstance) // viz startup
             });
 
             // return Content("<b>Hello!</b>");
+        }
+
+        public override void OnActionExecuted(ActionExecutedContext context)
+        {
+            if (context.Exception != null)
+            {
+                // pokud hráč, deska, atd. nebylo nalezeno
+                // TODO: ošetřit robustněji
+                if (context.Exception is KeyNotFoundException)
+                {
+                    context.ExceptionHandled = true;
+                    context.Result = Unauthorized();
+                }
+            }
         }
     }
 }

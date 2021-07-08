@@ -1,6 +1,7 @@
 ﻿
 import { cssVar } from "./cssvar.js";
 import { Letter } from "./Letter.jsx";
+import { MessageBoard } from "./MessageBoard.jsx";
 import { getMousePos } from "./mouse.js";
 
 // props: board array, board section top + left + width + height
@@ -67,6 +68,8 @@ export class GameBoard extends React.Component {
         this.getWord = this.getWord.bind(this);
         this.setWord = this.setWord.bind(this);
         this.clearWord = this.clearWord.bind(this);
+        this.checkWordOverlap = this.checkWordOverlap.bind(this);
+        this.fetchBoardAndCheckOverlap = this.fetchBoardAndCheckOverlap.bind(this);
 
         window.addEventListener("resize", this.draw);
         window.addEventListener("mousemove", this.handleMouseMove);
@@ -121,7 +124,8 @@ export class GameBoard extends React.Component {
 
             context.textAlign = "center";
             context.textBaseline = "middle";
-            context.font = "0.3px 'Roboto Slab'";
+            //context.font = "0.3px 'Roboto Slab'";
+            context.font = "3px 'Roboto Slab'";
             
             for (let x = 0; x < this.state.boardRect.w; x++) {
                 for (let y = 0; y < this.state.boardRect.h; y++) {
@@ -143,7 +147,11 @@ export class GameBoard extends React.Component {
                     context.fillRect(actualPos.x - CELL_RADIUS, actualPos.y - CELL_RADIUS, CELL_RADIUS * 2, CELL_RADIUS * 2);
 
                     context.fillStyle = CELL_FONT_COLOR;
-                    context.fillText(letterChar.toUpperCase(), actualPos.x, actualPos.y);
+
+                     // firefox měl problém s velikostí fontu (velký scale, mini font), tak je třeba to ošulit
+                    context.scale(0.1, 0.1);
+                    context.fillText(letterChar.toUpperCase(), actualPos.x * 10, actualPos.y * 10);
+                    context.scale(10, 10);
                 }
             }
         } finally {
@@ -170,15 +178,26 @@ export class GameBoard extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchBoard();
+        this.fetchBoardAndCheckOverlap();
         //this.draw();
-        
-        setInterval(this.fetchBoard, 500); // reguraly download board information
+
+        setInterval(this.fetchBoardAndCheckOverlap, 500); // regularly download board information
     }
 
     componentDidUpdate() {
         this.draw();
     }  
+
+    fetchBoardAndCheckOverlap() {
+        this.fetchBoard();
+
+        if (this.checkWordOverlap()) {
+            MessageBoard.writeError("Someone used the tiles before us!");
+            this.props.onWordCancel();
+        }
+
+        this.setState(this.state);
+    }
 
     fetchBoard() {
         if (this.cache.fetchingBoardRequest != null) {
@@ -529,5 +548,42 @@ export class GameBoard extends React.Component {
         } finally {
             this.setWord(rememberedWord, false); // restore original state
         }        
+    }
+
+    checkWordOverlap() {
+        // check, whether the word we're building is overlapping with characters already on the board
+
+        if (this.state.wordPos == null || this.state.wordStr == null) {
+            return false;
+        }
+
+        let step = null;
+
+        switch (this.state.wordDir) {
+            case "y":
+                step = { x: 0, y: 1 };
+                break;
+            case "x":
+                step = { x: 1, y: 0 };
+                break;
+            case null:
+                step = { x: 0, y: 0 };
+                break;
+            default:
+                throw "peculiar things are happening";
+        }
+
+        let stepFunc = (pos, i) => ({ x: pos.x + step.x * i, y: pos.y + step.y * i });
+
+        for (let i = 0; i < this.state.wordStr.length; i++) {
+            let pos = stepFunc(this.state.wordPos, i);
+
+            let ch = this.getCharAtGlobal(pos, false);
+            if (ch != " " && ch != "\0" && ch != this.state.wordStr[i]) {
+                return true; // overlap found
+            }
+        }
+
+        return false;
     }
 }

@@ -21,7 +21,7 @@ namespace WordWorldWebApp.Api
     {
         private readonly BoardProvider _boardProvider;
         private readonly PlayerManager _playerManager;
-        private readonly WordRater _wordRater;
+        private readonly WordRaterProvider _wordRaterProvider;
         private readonly LetterBagProvider _letterBagProvider;
         private readonly WordSetProvider _wordSetProvider;
         private readonly MoveChecker _moveChecker;
@@ -29,14 +29,14 @@ namespace WordWorldWebApp.Api
         public GameController(
             BoardProvider boardProvider,
             PlayerManager playerManager,
-            WordRater wordRater,
+            WordRaterProvider wordRaterProvider,
             LetterBagProvider letterBagProvider,
             WordSetProvider wordSetProvider,
             MoveChecker moveChecker)
         {
             _boardProvider = boardProvider;
             _playerManager = playerManager;
-            _wordRater = wordRater;
+            _wordRaterProvider = wordRaterProvider;
             _letterBagProvider = letterBagProvider;
             _wordSetProvider = wordSetProvider;
             _moveChecker = moveChecker;
@@ -44,6 +44,8 @@ namespace WordWorldWebApp.Api
 
         public async Task<IActionResult> Scan(string token, int x, int y, int w, int h)
         {
+            // TODO: ošetřit null
+
             var board = (await _playerManager.GetAsync(token)).Board;
 
             return Ok(ApiResponse.Success(new
@@ -54,6 +56,8 @@ namespace WordWorldWebApp.Api
 
         public async Task<IActionResult> Status(string token)
         {
+            // TODO: ošetřit
+
             var player = await _playerManager.GetAsync(token);
 
             return Ok(ApiResponse.Success(PlayerStatus.From(player)));
@@ -79,16 +83,38 @@ namespace WordWorldWebApp.Api
 
                 if (usedIndices == null)
                 {
+                    throw new LetterNotInInventoryException(); // GetIndices isn't working: TODO: fix
+
                     // if the caller didn't specify the indices of used letters, we choose a valid array of indices arbitrarily
                     usedIndices = player.Inventory.GetIndices(placedLetters);
                 }
 
+                #region usedIndices validation
+
                 if (usedIndices.Length != placedLetters.Length)
                 {
                     // if the length of usedIndices doesn't match the count of placed letters, something is not right
-                    throw new ArgumentException();
+                    throw new LetterNotInInventoryException();
+                }
+                else if (usedIndices.Any(i => i < 0 || i > player.Inventory.Count()))
+                {
+                    // all indices must be inside inventory
+                    throw new LetterNotInInventoryException();
+                }
+                else if (usedIndices.Distinct().Count() < usedIndices.Count())
+                {
+                    // no indices shuld repeat
+                    throw new LetterNotInInventoryException();
+                }
+                else if (!Enumerable.SequenceEqual(
+                    usedIndices.Select(player.Inventory.ElementAt).OrderBy(ch => ch),
+                    placedLetters.OrderBy(ch => ch)))
+                {
+                    // otestovat, zdali z písmen na pozicích, které byly uvedeny, skutečně lze vyrobit dané slovo; pokud ne, vyplivnout výjimku
+                    throw new LetterNotInInventoryException();
                 }
 
+                #endregion
 
                 Func<XY, string, bool> method = direction switch
                 {
@@ -102,7 +128,7 @@ namespace WordWorldWebApp.Api
                 {
                     lock (player)
                     {
-                        player.Score += _wordRater.Rate(word);
+                        player.Score += _wordRaterProvider.GetWordRater(_boardProvider.WordRaterOf(board)).Rate(placedLetters, word.Length);
                         player.ReplaceLetters(usedIndices,
                             _letterBagProvider.GetLetterBag(_boardProvider.LetterBagOf(board)).Pull(usedIndices.Length)); // DONE???: fix this (word length doesn't always match the count of used letters)
                     }

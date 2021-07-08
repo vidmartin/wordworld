@@ -11,6 +11,7 @@ namespace WordWorldWebApp.Services
         private readonly Dictionary<string, Board> _boards = new Dictionary<string, Board>();
         private readonly Dictionary<Board, string> _wordSets = new Dictionary<Board, string>();
         private readonly Dictionary<Board, string> _letterBags = new Dictionary<Board, string>();
+        private readonly Dictionary<Board, string> _wordRaters = new Dictionary<Board, string>();
        
         public string DefaultBoardKey { get; set; }
 
@@ -28,6 +29,13 @@ namespace WordWorldWebApp.Services
             public IBoardConfigurer UseLetterBag(string key)
             {
                 _parent._letterBags[_board] = key;
+
+                return this;
+            }
+
+            public IBoardConfigurer UseWordRater(string key)
+            {
+                _parent._wordRaters[_board] = key;
 
                 return this;
             }
@@ -63,5 +71,6 @@ namespace WordWorldWebApp.Services
 
         public string WordSetOf(Board board) => _wordSets[board];
         public string LetterBagOf(Board board) => _letterBags[board];
+        public string WordRaterOf(Board board) => _wordRaters[board];
     }
 }
