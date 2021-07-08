@@ -8,6 +8,8 @@ namespace WordWorldWebApp.Game
 {
     public abstract class Board : ILockable
     {
+        public string DisplayName { get; set; }
+
         public abstract int Width { get; }
         public abstract int Height { get; }
 

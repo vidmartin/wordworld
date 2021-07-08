@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WordWorldWebApp.Utils;
@@ -46,6 +47,9 @@ namespace WordWorldWebApp.Game
 
         public int Score { get; set; } = 0;       
         
+        [Required(ErrorMessage = "Username must be filled in.")]
+        [MinLength(5, ErrorMessage = "Username must be at least 5 characters long.")]
+        [RegularExpression(@"\w+", ErrorMessage = "Username must only contain alphanumeric characters or underscores.")]
         public abstract string Username { get; }
     }
 }

@@ -35,11 +35,13 @@ namespace WordWorldWebApp
                 .AddBoard("english1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
                     .UseLetterBag("english")
                     .UseWordSet("english")
-                    .UseWordRater("english"))
+                    .UseWordRater("english")
+                    .UseDisplayName("English"))
                 .AddBoard("czech1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
                     .UseLetterBag("czech")
                     .UseWordSet("czech")
-                    .UseWordRater("czech"))
+                    .UseWordRater("czech")
+                    .UseDisplayName("Èeská"))
                 .SetDefaultBoard("english1"));
 
             services.AddSingleton<PlayerManager>();

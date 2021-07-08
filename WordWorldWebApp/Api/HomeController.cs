@@ -11,6 +11,7 @@ using WordWorldWebApp.Extensions;
 using WordWorldWebApp.DataStructures;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WordWorldWebApp.Exceptions;
+using System.ComponentModel.DataAnnotations;
 
 namespace WordWorldWebApp.Api
 {
@@ -27,9 +28,7 @@ namespace WordWorldWebApp.Api
 
         public IActionResult Index()
         {
-            return Content("<b>Index</b>");
-
-            // return View();
+            return View();
         }
 
         [Route("/play/{board?}")]
@@ -42,18 +41,21 @@ namespace WordWorldWebApp.Api
         {
             var boardInstance = boardProvider.GetBoard(board ?? boardProvider.DefaultBoardKey);
 
-            Player player;
+            Player player = default;
 
             if (token == null)
             {
                 // create new player / vytvořit nového hráče
 
-                if (username == null)
+                try
                 {
-                    throw new ArgumentNullException();
+                    player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(START_LETTERS));
                 }
-
-                player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(START_LETTERS));
+                catch (ValidationException validationException)
+                {
+                    ModelState.AddModelError("", validationException.ValidationResult.ErrorMessage);
+                    return View("Index");
+                }
 
                 return RedirectToAction(ControllerContext.ActionDescriptor.ActionName, new { token = player.Token });
                 

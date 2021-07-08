@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,15 +37,22 @@ namespace WordWorldWebApp.Services
         // TODO: use ConcurrentDictionary?
         private readonly Dictionary<string, Player> _playersByToken = new Dictionary<string, Player>();
         private readonly Dictionary<string, Player> _playersByUsername = new Dictionary<string, Player>();
+
+        public void ValidatePlayer(Player player)
+        {
+            var context = new ValidationContext(player);
+            Validator.ValidateObject(player, context);
+        }
         
         private Player NewUnsafe(Board board, string username, IEnumerable<char> letters)
         {
-            if (_playersByUsername.ContainsKey(username))
+            if (username != null && _playersByUsername.ContainsKey(username))
             {
                 throw new AlreadyExistsException();
             }
 
             var player = new _Player(Guid.NewGuid().ToString(), username, board, DateTime.Now, letters);
+            ValidatePlayer(player);
 
             _playersByToken.Add(player.Token, player);
             _playersByUsername.Add(player.Username, player);

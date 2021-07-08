@@ -26,6 +26,13 @@ namespace WordWorldWebApp.Services
                 _board = board;
             }
 
+            public IBoardConfigurer UseDisplayName(string displayName)
+            {
+                _board.DisplayName = displayName;
+
+                return this;
+            }
+
             public IBoardConfigurer UseLetterBag(string key)
             {
                 _parent._letterBags[_board] = key;
@@ -67,6 +74,11 @@ namespace WordWorldWebApp.Services
         public Board GetBoard(string key)
         {
             return _boards[key];
+        }
+
+        public IEnumerable<string> EnumerateBoards()
+        {
+            return _boards.Keys;
         }
 
         public string WordSetOf(Board board) => _wordSets[board];
