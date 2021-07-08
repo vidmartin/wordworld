@@ -16,7 +16,7 @@
 
         // the player's token - could be retrieved from query params, but why not pass it through MVC?
         var PLAYER_TOKEN = "@Model.Token";
-        var PLAYER_NAME = "@Model.Username";
+        var PLAYER_NAME = "@Html.Raw(Model.Username)";
 
         // the initial state of the game
         var GAME_INITIAL = {

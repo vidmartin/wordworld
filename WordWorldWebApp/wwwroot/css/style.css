@@ -1,11 +1,16 @@
 ﻿
 :root {
     --color-white: #FFFFFF;
-    --color-empty-cell: #e0e0e0;
-    --color-filled-cell: #294dcf;
-    --color-highlight-empty-cell: #c2c2c2;
+    --color-lighter-light-gray: #f2f2f2;
+    --color-light-gray: #e0e0e0;
+    --color-darker-light-gray: #c2c2c2;
+    --color-blue: #294dcf;
     --color-ok: #1aa60d;
     --color-nok: #d4061e;
+
+    --color-empty-cell: var(--color-light-gray);
+    --color-highlight-empty-cell: var(--color-darker-light-gray);
+    --color-filled-cell: var(--color-blue);
     --color-placed-letter-valid: var(--color-ok);
     --color-placed-letter-invalid: var(--color-nok);
 }
@@ -128,6 +133,7 @@ button {
     border: none;
     color: white;
     font-family: "Roboto Slab", serif;
+    background-color: var(--color-blue);
 }
 
 button:hover {
@@ -201,6 +207,53 @@ button:active {
     margin: 0.5cm;
     font-size: 0.6cm;
     font-weight: 600;
+}
+
+.username-prompt {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 80%;
+    max-width: 7.5cm;
+
+    background-color: var(--color-lighter-light-gray);
+    padding: 0.5cm;
+    margin: 0.5cm;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.username-prompt label {
+    font-size: 0.3cm;
+    color: var(--color-darker-light-gray);
+    text-align: left;
+
+    margin: 0.1cm 0.1cm 0 0.1cm;
+}
+
+input[type=text], input[type=password] {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-darker-light-gray);
+    padding: 0.1cm;
+    margin: 0.1cm;   
+}
+
+select {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-darker-light-gray);
+    padding: 0.1cm;
+    margin: 0.1cm;
+}
+
+.validation-error {
+    color: var(--color-nok);
+    font-size: 0.3cm;
+    text-align: left;
+    margin: 0.1cm 0.1cm 0 0.1cm;
 }
 
 @keyframes slide-in-from-left {

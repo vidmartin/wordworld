@@ -1,0 +1,39 @@
+﻿
+@inject WordWorldWebApp.Services.BoardProvider BoardProvider
+
+<html>
+<head>
+
+    <title>WordWorld</title>
+
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap">
+
+    <script src="@Url.Content("~/js/wordworld/gameStarter.js")"></script>
+
+</head>
+<body>
+    <div>
+        <div class="username-prompt">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                @foreach(var error in ViewData.ModelState.SelectMany(entry => entry.Value.Errors))
+                {
+                    <div class="validation-error">@error.ErrorMessage</div>
+                }
+            }
+            <label>Username</label>
+            <input type="text" name="username" />
+            <label>Board</label>
+            <select name="board">
+                @foreach (var board in BoardProvider.EnumerateBoards())
+                {
+                    <option value="@board">@BoardProvider.GetBoard(board).DisplayName</option>
+                }
+            </select>
+            <button onclick="startGame()">Play!</button>
+        </div>
+    </div>
+</body>
+</html>
