@@ -12,6 +12,7 @@ using WordWorldWebApp.Services;
 using JavaScriptEngineSwitcher.V8;
 using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using React.AspNet;
+using WordWorldWebApp.HostedServices;
 
 namespace WordWorldWebApp
 {
@@ -59,6 +60,8 @@ namespace WordWorldWebApp
                 .AddWordRater("czech", new WordRater().LoadCharMap("a:2,·:4,b:6,c:6,Ë:10,d:3,Ô:20,e:2,È:7,Ï:6,f:15,g:15,h:8,i:2,Ì:3,j:5,k:3,l:2,m:3,n:2,Ú:20,o:1,Û:20,p:3,q:20,r:3,¯:8,s:2,ö:10,t:2,ù:20,u:3,˙:15,˘:10,v:2,w:20,x:20,y:5,˝:10,z:5,û:10")));
 
             services.AddTransient<MoveChecker>();
+
+            services.AddHostedService<PlayerCleaner>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

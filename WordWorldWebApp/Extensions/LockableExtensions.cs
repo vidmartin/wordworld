@@ -9,10 +9,17 @@ namespace WordWorldWebApp.Extensions
 {
     public static class LockableExtensions
     {
-        // TODO: better way?
+        // TODO: there has to better way than using TaskCompletionSource in this positively stupid manner
+
+
 
         public static Task DoAsync(this ILockable self, Action action)
         {
+            if (self.Lock != null)
+            {
+                return self.Lock(action);
+            }
+
             var source = new TaskCompletionSource();
 
             Task.Run(() =>
@@ -34,6 +41,12 @@ namespace WordWorldWebApp.Extensions
 
         public static Task<T> DoAsync<T>(this ILockable self, Func<T> func)
         {
+            if(self.Lock != null)
+            {
+                T result = default;
+                return self.Lock(() => result = func()).ContinueWith(task => result);
+            }
+
             var source = new TaskCompletionSource<T>();
 
             Task.Run(() =>
@@ -54,18 +67,50 @@ namespace WordWorldWebApp.Extensions
             return source.Task;
         }
 
-        public static Task<T> DoAsyncAsync<T>(this ILockable self, Func<Task<T>> func)
+        public static Task DoAsyncAsync(this ILockable self, Func<Task> action)
         {
-            var source = new TaskCompletionSource<T>();
+            if (self.Lock != null)
+            {
+                return self.Lock(async () => await action());
+            }
 
-            Task.Run(async () =>
+            var source = new TaskCompletionSource();
+
+            Task.Run(() =>
             {
                 try
                 {
-                    Task<T> result = default;
-                    lock (self) { result = func(); }
+                    lock (self) { action().Wait(); }
 
-                    source.SetResult(await result);
+                    source.SetResult();
+                }
+                catch (Exception ex)
+                {
+                    source.SetException(ex);
+                }
+            });
+
+            return source.Task;
+        }
+
+        public static Task<T> DoAsyncAsync<T>(this ILockable self, Func<Task<T>> func)
+        {
+            if (self.Lock != null)
+            {
+                T result = default;
+                return self.Lock(async () => result = await func()).ContinueWith(task => result);
+            }
+
+            var source = new TaskCompletionSource<T>();
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    T result = default;
+                    lock (self) { result = func().Result; }
+
+                    source.SetResult(result);
                 }
                 catch (Exception ex)
                 {

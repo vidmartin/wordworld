@@ -10,6 +10,9 @@ namespace WordWorldWebApp.Game
     {
         public abstract int Width { get; }
         public abstract int Height { get; }
+
+        public Func<Action, Task> Lock => null;
+
         public abstract string ReadX(XY pos);
         public abstract string ReadY(XY pos);
         public abstract bool WriteX(XY pos, string s);

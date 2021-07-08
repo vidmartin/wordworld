@@ -42,11 +42,24 @@ namespace WordWorldWebApp.Api
             _moveChecker = moveChecker;
         }
 
+        [NonAction]
+        private async Task<Player> FetchPlayerAsync(string token, bool setAction)
+        {
+            var player = await _playerManager.GetAsync(token);
+
+            if (setAction)
+            {
+                lock (player) { player.LastAction = DateTime.Now; }
+            }
+
+            return player;
+        }
+
         public async Task<IActionResult> Scan(string token, int x, int y, int w, int h)
         {
             // TODO: ošetřit null
 
-            var board = (await _playerManager.GetAsync(token)).Board;
+            var board = (await FetchPlayerAsync(token, false)).Board;
 
             return Ok(ApiResponse.Success(new
             {
@@ -58,14 +71,14 @@ namespace WordWorldWebApp.Api
         {
             // TODO: ošetřit
 
-            var player = await _playerManager.GetAsync(token);
+            var player = await FetchPlayerAsync(token, false);
 
             return Ok(ApiResponse.Success(PlayerStatus.From(player)));
         }
 
         public async Task<IActionResult> Write(string token, string word, string direction, int x, int y, string used)
-        {                           
-            var player = await _playerManager.GetAsync(token);
+        {                                       
+            var player = await FetchPlayerAsync(token, true);
             var board = player.Board;
 
             int[] usedIndices = used?.Split('_')?.Select(int.Parse)?.ToArray(); // ?? player.Inventory.GetIndices(word);

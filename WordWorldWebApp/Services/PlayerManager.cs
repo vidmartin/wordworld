@@ -5,10 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using WordWorldWebApp.Exceptions;
 using WordWorldWebApp.Game;
+using WordWorldWebApp.Utils;
 
 namespace WordWorldWebApp.Services
 {
-    public class PlayerManager
+    public class PlayerManager : ILockable
     {
         private class _Player : Player
         {
@@ -16,7 +17,7 @@ namespace WordWorldWebApp.Services
             {
                 Token = token;
                 Board = board;
-                Created = created;
+                LastAction = Created = created;
 
                 _inventory = // letters is List<char> l ? l : new List<char>(letters);
                     letters is char[] arr ? arr : letters.ToArray();
@@ -30,7 +31,7 @@ namespace WordWorldWebApp.Services
         }
 
         private readonly Dictionary<string, Player> _players = new Dictionary<string, Player>();
-
+        
         private Player NewUnsafe(Board board, IEnumerable<char> letters)
         {
             var player = new _Player(Guid.NewGuid().ToString(), board, DateTime.Now, letters);
@@ -55,7 +56,25 @@ namespace WordWorldWebApp.Services
             return _players.Remove(token);
         }
 
+        private Player[] GetAllPlayersUnsafe()
+        {
+            return _players.Values.ToArray();
+        }
+
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+        public Func<Action, Task> Lock => async action =>
+        {
+            try
+            {
+                await _semaphore.WaitAsync();
+                action();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        };
 
         public Player New(Board board, IEnumerable<char> letters)
         {
@@ -96,6 +115,19 @@ namespace WordWorldWebApp.Services
             }
         }
 
+        public Player[] GetAllPlayers()
+        {
+            try
+            {
+                _semaphore.Wait();
+                return GetAllPlayersUnsafe();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public async Task<Player> NewAsync(Board board, IEnumerable<char> letters)
         {
             try
@@ -128,6 +160,19 @@ namespace WordWorldWebApp.Services
             {
                 await _semaphore.WaitAsync();
                 return DeleteUnsafe(token);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task<Player[]> GetAllPlayersAsync()
+        {
+            try
+            {
+                await _semaphore.WaitAsync();
+                return GetAllPlayersUnsafe();
             }
             finally
             {
