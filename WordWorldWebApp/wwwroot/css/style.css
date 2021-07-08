@@ -197,6 +197,12 @@ button:active {
     opacity: 0.8;
 }
 
+.username-display {
+    margin: 0.5cm;
+    font-size: 0.6cm;
+    font-weight: 600;
+}
+
 @keyframes slide-in-from-left {
     from {
         transform: translateY(-3cm);

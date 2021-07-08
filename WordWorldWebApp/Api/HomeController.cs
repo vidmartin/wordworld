@@ -10,6 +10,7 @@ using WordWorldWebApp.Game;
 using WordWorldWebApp.Extensions;
 using WordWorldWebApp.DataStructures;
 using Microsoft.AspNetCore.Mvc.Filters;
+using WordWorldWebApp.Exceptions;
 
 namespace WordWorldWebApp.Api
 {
@@ -32,7 +33,8 @@ namespace WordWorldWebApp.Api
         }
 
         [Route("/play/{board?}")]
-        public async Task<IActionResult> Play([FromQuery] string token, [FromRoute] string board,
+        public async Task<IActionResult> Play([FromQuery] string token, [FromQuery] string username,
+            [FromRoute] string board,
             [FromServices] PlayerManager playerManager,
             [FromServices] BoardProvider boardProvider,
             [FromServices] LetterBagProvider letterBagProvider,
@@ -44,8 +46,14 @@ namespace WordWorldWebApp.Api
 
             if (token == null)
             {
-                // create new player - vytvořit nového hráče                
-                player = await playerManager.NewAsync(boardInstance, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(START_LETTERS));
+                // create new player / vytvořit nového hráče
+
+                if (username == null)
+                {
+                    throw new ArgumentNullException();
+                }
+
+                player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(START_LETTERS));
 
                 return RedirectToAction(ControllerContext.ActionDescriptor.ActionName, new { token = player.Token });
                 
@@ -53,7 +61,7 @@ namespace WordWorldWebApp.Api
             }
             else
             {
-                player = await playerManager.GetAsync(token);
+                player = await playerManager.GetAsync(token) ?? throw new PlayerNotFoundException();
             }
 
             var origin = new Vec2i(boardInstance.Width / 2, boardInstance.Height / 2);
@@ -62,6 +70,7 @@ namespace WordWorldWebApp.Api
             return View(new PlayModel()
             {
                 Token = token,
+                Username = player.Username,
                 PlayerStatus = PlayerStatus.From(player),
                 Origin = origin,
                 BoardArray = "",
@@ -81,6 +90,20 @@ namespace WordWorldWebApp.Api
                 // pokud hráč, deska, atd. nebylo nalezeno
                 // TODO: ošetřit robustněji
                 if (context.Exception is KeyNotFoundException)
+                {
+                    context.ExceptionHandled = true;
+                    context.Result = BadRequest();
+                }
+
+                // pokud nějaký důležitý argument nebyl v requestu
+                else if (context.Exception is ArgumentNullException)
+                {
+                    context.ExceptionHandled = true;
+                    context.Result = BadRequest();
+                }
+
+                // pokud hráč se zadaným uživatelským jménem již existuje
+                else if (context.Exception is AlreadyExistsException)
                 {
                     context.ExceptionHandled = true;
                     context.Result = BadRequest();

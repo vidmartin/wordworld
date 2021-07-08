@@ -12,7 +12,7 @@ namespace WordWorldWebApp.HostedServices
 {
     public class PlayerCleaner : IHostedService, IDisposable
     {
-        public static readonly TimeSpan PLAYER_TIMEOUT = TimeSpan.FromMinutes(1); // TODO: load from config file
+        public static readonly TimeSpan PLAYER_TIMEOUT = TimeSpan.FromMinutes(5); // TODO: load from config file
         public static readonly TimeSpan CHECK_INVERVAL = TimeSpan.FromMinutes(1); // TODO: load from config file
 
         private readonly PlayerManager _playerManager;

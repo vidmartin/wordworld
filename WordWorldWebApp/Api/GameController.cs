@@ -47,6 +47,11 @@ namespace WordWorldWebApp.Api
         {
             var player = await _playerManager.GetAsync(token);
 
+            if (player == null)
+            {
+                throw new PlayerNotFoundException();
+            }
+
             if (setAction)
             {
                 lock (player) { player.LastAction = DateTime.Now; }
@@ -69,7 +74,7 @@ namespace WordWorldWebApp.Api
 
         public async Task<IActionResult> Status(string token)
         {
-            // TODO: ošetřit
+            // TODO: ošetřit null
 
             var player = await FetchPlayerAsync(token, false);
 
@@ -131,6 +136,16 @@ namespace WordWorldWebApp.Api
             });
         }
 
+        /// <summary>
+        /// check whether username is available
+        /// </summary>
+        public async Task<IActionResult> Available(string username)
+        {
+            return Ok(ApiResponse.Success(new
+            {
+                result = (await _playerManager.GetByUsernameAsync(username)) == null
+            }));
+        }
 
 
         public override void OnActionExecuted(ActionExecutedContext context)

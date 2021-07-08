@@ -115,8 +115,9 @@ export class GameMenu extends React.Component {
                     </div>
                 </div>
 
-                <div className="game-menu-right">
+                <div className="game-menu-right">                    
                     <Score score={this.props.game.score} />
+                    <div className="username-display">{PLAYER_NAME}</div>
                 </div>
 
             </div>

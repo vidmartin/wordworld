@@ -13,11 +13,12 @@ namespace WordWorldWebApp.Services
     {
         private class _Player : Player
         {
-            public _Player(string token, Board board, DateTime created, IEnumerable<char> letters)
+            public _Player(string token, string username, Board board, DateTime created, IEnumerable<char> letters)
             {
                 Token = token;
                 Board = board;
                 LastAction = Created = created;
+                Username = username;
 
                 _inventory = // letters is List<char> l ? l : new List<char>(letters);
                     letters is char[] arr ? arr : letters.ToArray();
@@ -28,37 +29,59 @@ namespace WordWorldWebApp.Services
             public override Board Board { get; }
 
             public override DateTime Created { get; }
+
+            public override string Username { get; }
         }
 
-        private readonly Dictionary<string, Player> _players = new Dictionary<string, Player>();
+        // TODO: use ConcurrentDictionary?
+        private readonly Dictionary<string, Player> _playersByToken = new Dictionary<string, Player>();
+        private readonly Dictionary<string, Player> _playersByUsername = new Dictionary<string, Player>();
         
-        private Player NewUnsafe(Board board, IEnumerable<char> letters)
+        private Player NewUnsafe(Board board, string username, IEnumerable<char> letters)
         {
-            var player = new _Player(Guid.NewGuid().ToString(), board, DateTime.Now, letters);
+            if (_playersByUsername.ContainsKey(username))
+            {
+                throw new AlreadyExistsException();
+            }
 
-            _players.Add(player.Token, player);
+            var player = new _Player(Guid.NewGuid().ToString(), username, board, DateTime.Now, letters);
+
+            _playersByToken.Add(player.Token, player);
+            _playersByUsername.Add(player.Username, player);
 
             return player;
         }        
 
-        private Player GetUnsafe(string token)
+        private Player? GetUnsafe(string token)
         {
-            if (!_players.ContainsKey(token))
+            if (!_playersByToken.ContainsKey(token))
             {
-                throw new PlayerNotFoundException();
+                // throw new PlayerNotFoundException();
+                return null;
             }
 
-            return _players[token];
+            return _playersByToken[token];
+        }
+
+        private Player? GetByUsernameUnsafe(string username)
+        {
+            if (!_playersByUsername.ContainsKey(username))
+            {
+                // throw new PlayerNotFoundException();
+                return null;
+            }
+
+            return _playersByUsername[username];
         }
 
         private bool DeleteUnsafe(string token)
         {
-            return _players.Remove(token);
+            return _playersByToken.Remove(token) && _playersByUsername.Remove(token);
         }
 
         private Player[] GetAllPlayersUnsafe()
         {
-            return _players.Values.ToArray();
+            return _playersByToken.Values.ToArray();
         }
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
@@ -76,12 +99,12 @@ namespace WordWorldWebApp.Services
             }
         };
 
-        public Player New(Board board, IEnumerable<char> letters)
+        public Player New(Board board, string username, IEnumerable<char> letters)
         {
             try
             {
                 _semaphore.Wait();
-                return NewUnsafe(board, letters);
+                return NewUnsafe(board, username, letters);
             }
             finally
             {
@@ -89,7 +112,7 @@ namespace WordWorldWebApp.Services
             }
         }
 
-        public Player Get(string token)
+        public Player? Get(string token)
         {
             try
             {
@@ -101,6 +124,19 @@ namespace WordWorldWebApp.Services
                 _semaphore.Release();
             }
         }
+
+        public Player? GetByUsername(string username)
+        {
+            try
+            {
+                _semaphore.Wait();
+                return GetByUsernameUnsafe(username);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }        
 
         public bool Delete(string token)
         {
@@ -128,12 +164,12 @@ namespace WordWorldWebApp.Services
             }
         }
 
-        public async Task<Player> NewAsync(Board board, IEnumerable<char> letters)
+        public async Task<Player> NewAsync(Board board, string username, IEnumerable<char> letters)
         {
             try
             {
                 await _semaphore.WaitAsync();
-                return NewUnsafe(board, letters);
+                return NewUnsafe(board, username, letters);
             }
             finally
             {
@@ -141,12 +177,25 @@ namespace WordWorldWebApp.Services
             }
         }
 
-        public async Task<Player> GetAsync(string token)
+        public async Task<Player?> GetAsync(string token)
         {
             try
             {
                 await _semaphore.WaitAsync();
                 return GetUnsafe(token);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        public async Task<Player?> GetByUsernameAsync(string username)
+        {
+            try
+            {
+                await _semaphore.WaitAsync();
+                return GetByUsernameUnsafe(username);
             }
             finally
             {

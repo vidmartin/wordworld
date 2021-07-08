@@ -44,6 +44,8 @@ namespace WordWorldWebApp.Game
             return ReplaceLetters(oldIndices.ToHashSet(), newLetters);
         }
 
-        public int Score { get; set; } = 0;        
+        public int Score { get; set; } = 0;       
+        
+        public abstract string Username { get; }
     }
 }
