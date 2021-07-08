@@ -27,7 +27,7 @@ The communication between the client's browser and the web server is based on re
 the client downloads data about the currently viewed section of the game board every 0.5s. Admittedly, this is not the most efficient way of doing things and with
 many players playing at once, this will cause a very high frequency of requests on the server. I haven't tested it with many players, so I don't know how 
 many players at once the server can handle. If the throughput of requests turns out to be a problem, an alternative approach could be taken, for example
-by having the server only send info about changes on the board, once they occur, to the client - this could with `EventSource` (content-type `text/event-stream`) or with `WebSockets`.
+by having the server only send info about changes on the board, once they occur, to the client - this could be done with `EventSource` (content-type `text/event-stream`) or with `WebSockets`.
 
 ### Word checking
 
