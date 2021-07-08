@@ -38,6 +38,7 @@ words into a trie data structure to allow efficient checking of whether a word i
 
 - Replace jQuery ajax requests with fetch api
 - Make translations of different languages
+- Forget players after some timeout from their last action
 - Make words dissapear after either some time or add a limit to how many words can be on the board, removing the oldest words in FIFO order
 - Add limit to how far player can move the board
 - Add homepage
