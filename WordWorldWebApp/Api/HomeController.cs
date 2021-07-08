@@ -83,7 +83,7 @@ namespace WordWorldWebApp.Api
                 if (context.Exception is KeyNotFoundException)
                 {
                     context.ExceptionHandled = true;
-                    context.Result = Unauthorized();
+                    context.Result = BadRequest();
                 }
             }
         }
