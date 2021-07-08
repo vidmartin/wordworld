@@ -94,8 +94,10 @@ namespace WordWorldWebApp.Services
                             throw new UnknownWordException(false, unintentionalWord, unintentionalWordStart.x, unintentionalWordStart.y, GetOtherDirection(direction));
                         }
 
+
                         if (!chdict.ContainsKey(word[i]))
                         {
+                            // TODO: this probably isn't required anymore, inventory checking is now handled by CheckUsedLetterIndices
                             throw new LetterNotInInventoryException();
                         }
 
@@ -173,6 +175,23 @@ namespace WordWorldWebApp.Services
 
                 _ => throw new ArgumentException()
             };
+        }
+
+        /// <summary>
+        /// returns true, if indices are valid, false otherwise
+        /// </summary>
+        public bool CheckUsedLetterIndices(int[] indices, char[] letters, IEnumerable<char> inventory)
+        {
+            if (indices.Any(i => i < 0 || i > inventory.Count()))
+            {
+                // all indices must point to element in inventory
+                return false;
+            }
+
+            // if the set of letters in the inventory at the corresponding indices matches the used letters, indices are valid
+            return Enumerable.SequenceEqual(
+                indices.Distinct().Select(inventory.ElementAt).OrderBy(ch => ch),
+                letters.OrderBy(ch => ch));
         }
     }
 }

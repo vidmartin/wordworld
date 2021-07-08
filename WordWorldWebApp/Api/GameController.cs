@@ -89,32 +89,10 @@ namespace WordWorldWebApp.Api
                     usedIndices = player.Inventory.GetIndices(placedLetters);
                 }
 
-                #region usedIndices validation
-
-                if (usedIndices.Length != placedLetters.Length)
+                if (!_moveChecker.CheckUsedLetterIndices(usedIndices, placedLetters, player.Inventory))
                 {
-                    // if the length of usedIndices doesn't match the count of placed letters, something is not right
                     throw new LetterNotInInventoryException();
                 }
-                else if (usedIndices.Any(i => i < 0 || i > player.Inventory.Count()))
-                {
-                    // all indices must be inside inventory
-                    throw new LetterNotInInventoryException();
-                }
-                else if (usedIndices.Distinct().Count() < usedIndices.Count())
-                {
-                    // no indices shuld repeat
-                    throw new LetterNotInInventoryException();
-                }
-                else if (!Enumerable.SequenceEqual(
-                    usedIndices.Select(player.Inventory.ElementAt).OrderBy(ch => ch),
-                    placedLetters.OrderBy(ch => ch)))
-                {
-                    // otestovat, zdali z písmen na pozicích, které byly uvedeny, skutečně lze vyrobit dané slovo; pokud ne, vyplivnout výjimku
-                    throw new LetterNotInInventoryException();
-                }
-
-                #endregion
 
                 Func<XY, string, bool> method = direction switch
                 {
@@ -139,6 +117,8 @@ namespace WordWorldWebApp.Api
                 throw new NotImplementedException();
             });
         }
+
+
 
         public override void OnActionExecuted(ActionExecutedContext context)
         {

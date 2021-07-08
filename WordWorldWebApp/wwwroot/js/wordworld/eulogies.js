@@ -17,7 +17,7 @@ export function getCelebratoryStatementFromScore(deltaScore) {
             } else if (deltaScore < 240) {
                 return choice(["Skvělé!", "Paráda!", "Velmi dobré!"]);
             } else {
-                return choice(["Skvostné!", "Úžasné!", "Výjimeční!"])
+                return choice(["Skvostné!", "Úžasné!", "Výjimečné!"])
             }
         default:
             if (deltaScore < 0) {
