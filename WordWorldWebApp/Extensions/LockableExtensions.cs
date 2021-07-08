@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,9 +10,7 @@ namespace WordWorldWebApp.Extensions
 {
     public static class LockableExtensions
     {
-        // TODO: there has to better way than using TaskCompletionSource in this positively stupid manner
-
-
+        // TODO: make locking non-blocking somehow?
 
         public static Task DoAsync(this ILockable self, Action action)
         {
@@ -20,105 +19,68 @@ namespace WordWorldWebApp.Extensions
                 return self.Lock(action);
             }
 
-            var source = new TaskCompletionSource();
-
-            Task.Run(() =>
+            lock (self)
             {
-                try
-                {
-                    lock (self) { action(); }
+                action();
+            }
 
-                    source.SetResult();
-                }
-                catch (Exception ex)
-                {
-                    source.SetException(ex);
-                }
-            });
-
-            return source.Task;
+            return Task.CompletedTask;
         }
 
         public static Task<T> DoAsync<T>(this ILockable self, Func<T> func)
         {
-            if(self.Lock != null)
+            T result = default;
+
+            if (self.Lock != null)
             {
-                T result = default;
                 return self.Lock(() => result = func()).ContinueWith(task => result);
             }
 
-            var source = new TaskCompletionSource<T>();
-
-            Task.Run(() =>
+            lock(self)
             {
-                try
-                {
-                    T result = default;
-                    lock (self) { result = func(); }
+                result = func();
+            }
 
-                    source.SetResult(result);
-                }
-                catch (Exception ex)
-                {
-                    source.SetException(ex);
-                }
-            });
-
-            return source.Task;
+            return Task.FromResult(result);
         }
 
-        public static Task DoAsyncAsync(this ILockable self, Func<Task> action)
+        public static async Task DoAsyncAsync(this ILockable self, Func<Task> action)
         {
             if (self.Lock != null)
             {
-                return self.Lock(async () => await action());
+                await self.Lock(async () => await action());
+                return;
             }
 
-            var source = new TaskCompletionSource();
-
-            Task.Run(() =>
+            try
             {
-                try
-                {
-                    lock (self) { action().Wait(); }
-
-                    source.SetResult();
-                }
-                catch (Exception ex)
-                {
-                    source.SetException(ex);
-                }
-            });
-
-            return source.Task;
+                Monitor.Enter(self);
+                await action();
+            }
+            finally
+            {
+                Monitor.Exit(self);
+            }
         }
 
-        public static Task<T> DoAsyncAsync<T>(this ILockable self, Func<Task<T>> func)
+        public static async Task<T> DoAsyncAsync<T>(this ILockable self, Func<Task<T>> func)
         {
+            T result = default;
+
             if (self.Lock != null)
             {
-                T result = default;
-                return self.Lock(async () => result = await func()).ContinueWith(task => result);
+                return await self.Lock(async () => result = await func()).ContinueWith(task => result);
             }
 
-            var source = new TaskCompletionSource<T>();
-
-            Task.Run(() =>
+            try
             {
-                try
-                {
-                    T result = default;
-                    lock (self) { result = func().Result; }
-
-                    source.SetResult(result);
-                }
-                catch (Exception ex)
-                {
-                    source.SetException(ex);
-                }
-            });
-
-            return source.Task;
+                Monitor.Enter(self);
+                return await func();
+            }
+            finally
+            {
+                Monitor.Exit(self);
+            }
         }
     }
 }
