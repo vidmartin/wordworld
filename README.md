@@ -11,13 +11,8 @@ I created this game because I thought it was an interesting concept, but also to
 
 ## How to use
 
-The game allows multiple boards to exist, and each player session is bound to one of these boards.
-
-You can join an English board on the following endpoints: `/play` or `/play/english1`
-
-You can also join a Czech board on the following endpoint: `/play/czech1`
-
-In the future, I will be adding a homepage, which will make joining games way more intuitive.
+The game allows multiple boards to exist, and each player session is bound to one of these boards. The index page contains a form, that allows to
+join one of these boards under a given name.
 
 ## Technical stuff
 
