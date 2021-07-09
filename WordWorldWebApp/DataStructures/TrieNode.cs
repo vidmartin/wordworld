@@ -174,6 +174,9 @@ namespace WordWorldWebApp.DataStructures
             }            
         }
 
+        /// <summary>
+        /// returns, whether this tree or subtree contains the given word
+        /// </summary>
         public bool ContainsWord(string word)
         {
             var curr = this;
@@ -186,6 +189,39 @@ namespace WordWorldWebApp.DataStructures
             }
 
             return curr.IsFinal;
+        }
+
+        /// <summary>
+        /// returns all words that match the given pattern - normal letters and a wildcard, which matches any character.
+        /// </summary>
+        public string[] GetMatchingWords(string pattern, char wildcard)
+        {
+            var curr = new[] { (node: this, word: this.Letter.ToString()) };
+
+            foreach (char ch in pattern)
+            {
+                if (ch == wildcard)
+                {
+                    // wildcard matches all children
+                    curr = curr.SelectMany(tuple => tuple.node.Children.Select(child => (node: child, word: tuple.word + child.Letter))).ToArray();
+                    continue;
+                }
+
+                // for every node, select single child with the given letter
+                curr = curr.Select(tuple => (node: tuple.node.GetChild(ch), word: tuple.word))
+                    .Where(tuple => tuple.node != null)
+                    .Select(tuple => (node: tuple.node, word: tuple.word + tuple.node.Letter))
+                    .ToArray();
+
+                if (curr.Length == 0)
+                {
+                    return new string[0];
+                }
+            }
+
+            return curr.Where(tuple => tuple.node.IsFinal)
+                .Select(tuple => tuple.word)
+                .ToArray();                
         }
     }
 }

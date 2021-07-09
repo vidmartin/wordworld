@@ -92,6 +92,7 @@ namespace WordWorldWebApp.Controllers
             var player = await FetchPlayerAsync(token, true);
             var board = player.Board;
 
+            // TODO: handle FormatException
             int[] usedIndices = used?.Split('_')?.Select(int.Parse)?.ToArray(); // ?? player.Inventory.GetIndices(word);
 
             return await board.DoAsync(() =>
