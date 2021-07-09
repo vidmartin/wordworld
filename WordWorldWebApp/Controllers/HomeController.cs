@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using WordWorldWebApp.Exceptions;
 using System.ComponentModel.DataAnnotations;
 
-namespace WordWorldWebApp.Api
+namespace WordWorldWebApp.Controllers
 {
     public class HomeController : Controller
     {

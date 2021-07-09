@@ -13,7 +13,7 @@ using WordWorldWebApp.Models;
 using WordWorldWebApp.Services;
 using WordWorldWebApp.Utils;
 
-namespace WordWorldWebApp.Api
+namespace WordWorldWebApp.Controllers
 {
     [Route("game/{action}")]
     [ApiController]
