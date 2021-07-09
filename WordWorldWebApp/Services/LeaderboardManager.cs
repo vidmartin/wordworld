@@ -31,7 +31,7 @@ namespace WordWorldWebApp.Services
         /// <returns></returns>
         public async Task<Player[]> GetLeaderboardAsync()
         {
-            if (_cachedLeaderboard == null && DateTime.Now - _cachedLeaderboardDateTime > CACHE_TIME)
+            if (_cachedLeaderboard == null || DateTime.Now - _cachedLeaderboardDateTime > CACHE_TIME)
             {
                 _cachedLeaderboard = (await _playerManager.GetAllPlayersAsync())
                     .OrderByDescending(player => player.Score)

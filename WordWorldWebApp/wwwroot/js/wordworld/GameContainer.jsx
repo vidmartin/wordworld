@@ -2,6 +2,7 @@
 import { GameMenu } from "./GameMenu.jsx";
 import { GameBoard } from "./GameBoard.jsx";
 import { MessageBoard } from "./MessageBoard.jsx";
+import { Leaderboard } from "./Leaderboard.jsx";
 import { getCelebratoryStatementFromScore } from "./eulogies.js";
 
 export class GameContainer extends React.Component {
@@ -188,6 +189,7 @@ export class GameContainer extends React.Component {
         return (
             <div className="game-container">
                 <MessageBoard id="default" />
+                <Leaderboard />
                 <GameBoard game={this.state.game} ref={this.board}
                     onLetterPlop={this.handleLetterPlop}
                     onWordCancel={this.handleWordCancel} />

@@ -4,15 +4,18 @@
     --color-lighter-light-gray: #f2f2f2;
     --color-light-gray: #e0e0e0;
     --color-darker-light-gray: #c2c2c2;
+    --color-gray: #9c9c9c;
     --color-blue: #294dcf;
     --color-ok: #1aa60d;
     --color-nok: #d4061e;
-
+    --color-gold: #e8a813;
+    
     --color-empty-cell: var(--color-light-gray);
     --color-highlight-empty-cell: var(--color-darker-light-gray);
     --color-filled-cell: var(--color-blue);
     --color-placed-letter-valid: var(--color-ok);
     --color-placed-letter-invalid: var(--color-nok);
+    --color-winner: var(--color-gold);
 }
 
 body {
@@ -254,6 +257,63 @@ select {
     font-size: 0.3cm;
     text-align: left;
     margin: 0.1cm 0.1cm 0 0.1cm;
+}
+
+.leaderboard {
+    position: absolute;
+    right: 0.2cm;
+    top: 0.2cm;
+    width: 5cm;
+    overflow: visible;
+    height: 0;
+    background-color: var(--color-white);
+    opacity: 0.7;
+}
+
+.leaderboard-header {
+    position: relative;
+    text-align: center;
+    font-size: 0.7cm;
+    margin: 0.2cm;
+    border-bottom: 3px solid var(--color-darker-light-gray);
+}
+
+.leaderboard-content {
+    position: relative;    
+}
+
+.leaderboard-item {
+    position: absolute;
+    width: 100%;
+    left: 0;    
+    font-size: 0.5cm;
+
+    transition: top 0.3s, background-color 0.3s;
+
+    color: black;
+}
+
+.leaderboard-item:nth-child(2n+1) {
+    background-color: var(--color-gray);
+}
+
+.leaderboard-item:nth-child(1) {
+    background-color: var(--color-winner);
+    color: white;
+}
+
+.leaderboard-item-username {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0.5cm;
+}
+
+.leaderboard-item-score {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0.5cm;
 }
 
 @keyframes slide-in-from-left {
