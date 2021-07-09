@@ -56,6 +56,11 @@ namespace WordWorldWebApp.Controllers
                     ModelState.AddModelError("", validationException.ValidationResult.ErrorMessage);
                     return View("Index");
                 }
+                catch (AlreadyExistsException)
+                {
+                    ModelState.AddModelError("", "Username already exists.");
+                    return View("Index");
+                }
 
                 return RedirectToAction(ControllerContext.ActionDescriptor.ActionName, new { token = player.Token });
                 
