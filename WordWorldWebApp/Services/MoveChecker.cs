@@ -71,9 +71,6 @@ namespace WordWorldWebApp.Services
                 throw new UnknownWordException(true, actualWord, position.x, position.y, direction);
             }
 
-            // dictionary to keep track of letters, that haven't been used yet
-            var chdict = player.Inventory.CountKeys();
-
             for (int i = 0; i < word.Length; i++)
             {
                 var pos = stepper(position, i);
@@ -86,24 +83,13 @@ namespace WordWorldWebApp.Services
                     {
                         board.Set(pos, word[i]); // temporarily change character at current position to test unintentionally created words
 
+                        // TODO: unintentional score
                         (XY unintentionalWordStart, string unintentionalWord) = GetActualWord(GetOtherDirection(direction), board, pos);
                         
                         if (unintentionalWord.Length > 1 && !wordSet.ContainsWord(unintentionalWord))
                         {
                             // another word is created unintentionally (perpendicular to tested word) and isn't known, that is not allowed
                             throw new UnknownWordException(false, unintentionalWord, unintentionalWordStart.x, unintentionalWordStart.y, GetOtherDirection(direction));
-                        }
-
-
-                        if (!chdict.ContainsKey(word[i]))
-                        {
-                            // TODO: this probably isn't required anymore, inventory checking is now handled by CheckUsedLetterIndices
-                            throw new LetterNotInInventoryException();
-                        }
-
-                        if (--chdict[word[i]] == 0)
-                        {
-                            chdict.Remove(word[i]);
                         }
 
                         placed.Add(word[i]);
