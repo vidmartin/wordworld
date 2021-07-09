@@ -19,12 +19,15 @@ namespace WordWorldWebApp.Api
     [ApiController]
     public class GameController : Controller
     {
+        public const int PLAYERS_ON_LEADERBOARD_COUNT = 5;
+
         private readonly BoardProvider _boardProvider;
         private readonly PlayerManager _playerManager;
         private readonly WordRaterProvider _wordRaterProvider;
         private readonly LetterBagProvider _letterBagProvider;
         private readonly WordSetProvider _wordSetProvider;
         private readonly MoveChecker _moveChecker;
+        private readonly LeaderboardManager _leaderboardManager;
 
         public GameController(
             BoardProvider boardProvider,
@@ -32,7 +35,8 @@ namespace WordWorldWebApp.Api
             WordRaterProvider wordRaterProvider,
             LetterBagProvider letterBagProvider,
             WordSetProvider wordSetProvider,
-            MoveChecker moveChecker)
+            MoveChecker moveChecker,
+            LeaderboardManager leaderboardManager)
         {
             _boardProvider = boardProvider;
             _playerManager = playerManager;
@@ -40,6 +44,7 @@ namespace WordWorldWebApp.Api
             _letterBagProvider = letterBagProvider;
             _wordSetProvider = wordSetProvider;
             _moveChecker = moveChecker;
+            _leaderboardManager = leaderboardManager;
         }
 
         [NonAction]
@@ -144,6 +149,23 @@ namespace WordWorldWebApp.Api
             return Ok(ApiResponse.Success(new
             {
                 result = (await _playerManager.GetByUsernameAsync(username)) == null
+            }));
+        }
+
+        /// <summary>
+        /// return top players on the board of the current player
+        /// </summary>
+        public async Task<IActionResult> Leaderboard(string token)
+        {
+            var player = await FetchPlayerAsync(token, false);
+
+            var leaderboard = (await _leaderboardManager.GetLeaderboardAsync())
+                .Where(p => p.Board == player.Board)
+                .Take(PLAYERS_ON_LEADERBOARD_COUNT);
+
+            return Ok(ApiResponse.Success(new
+            {
+                players = leaderboard.Select(p => new { score = p.Score, username = p.Username })
             }));
         }
 
