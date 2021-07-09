@@ -72,8 +72,6 @@ namespace WordWorldWebApp.Controllers
 
         public async Task<IActionResult> Scan(string token, int x, int y, int w, int h)
         {
-            // TODO: ošetřit null
-
             var board = (await FetchPlayerAsync(token, false)).Board;
 
             return Ok(ApiResponse.Success(new
@@ -84,8 +82,6 @@ namespace WordWorldWebApp.Controllers
 
         public async Task<IActionResult> Status(string token)
         {
-            // TODO: ošetřit null
-
             var player = await FetchPlayerAsync(token, false);
 
             return Ok(ApiResponse.Success(PlayerStatus.From(player)));
