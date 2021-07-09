@@ -48,6 +48,11 @@ namespace WordWorldWebApp.Services
             return _root.ContainsWord(word.ToLower());
         }
 
+        public string[] Match(string pattern)
+        {
+            return _root.GetMatchingWords(pattern, '*');
+        }
+
         private static readonly Random _RANDOM = new Random();
 
         public string RandomWord()

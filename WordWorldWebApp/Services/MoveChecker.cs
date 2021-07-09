@@ -92,6 +92,18 @@ namespace WordWorldWebApp.Services
                             throw new UnknownWordException(false, unintentionalWord, unintentionalWordStart.x, unintentionalWordStart.y, GetOtherDirection(direction));
                         }
 
+
+                        if (!chdict.ContainsKey(word[i]))
+                        {
+                            // TODO: this probably isn't required anymore, inventory checking is now handled by CheckUsedLetterIndices
+                            throw new LetterNotInInventoryException();
+                        }
+
+                        if (--chdict[word[i]] == 0)
+                        {
+                            chdict.Remove(word[i]);
+                        }
+
                         placed.Add(word[i]);
 
                         continue;
