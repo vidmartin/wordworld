@@ -22,8 +22,6 @@ var PLACED_VALID_CELL_COLOR = cssVar("--colo-placed-letter-valid").get();
 var CELL_FONT_COLOR = cssVar("--color-white").get();
 var BOARD_RECT_PADDING = 10;
 
-// TODO: dodělat
-
 export class GameBoard extends React.Component {
     constructor(props) {
         super(props);

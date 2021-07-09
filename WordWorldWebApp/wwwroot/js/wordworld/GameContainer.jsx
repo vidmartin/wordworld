@@ -93,8 +93,6 @@ export class GameContainer extends React.Component {
     }
 
     handleLetterDrop(mousePos) {
-        // TODO: this is where the code to drop letters onto the board will be 
-
         if (this.board.current.dropLetter() == true) {
             this.setState({
                 game: {
