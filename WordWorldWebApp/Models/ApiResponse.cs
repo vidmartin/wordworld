@@ -40,6 +40,7 @@ namespace WordWorldWebApp.Models
                 UnknownWordException => "unknown_word",
                 WordTooShortException => "word_too_short",
                 IndexOutOfRangeException => "out_of_range",
+                ActionArgumentException => "invalid_arguments",
 
                 _ => null
             };

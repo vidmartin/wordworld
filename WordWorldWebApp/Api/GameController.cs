@@ -50,6 +50,11 @@ namespace WordWorldWebApp.Api
         [NonAction]
         private async Task<Player> FetchPlayerAsync(string token, bool setAction)
         {
+            if (token == null)
+            {
+                throw new ActionArgumentException();
+            }
+
             var player = await _playerManager.GetAsync(token);
 
             if (player == null)
@@ -106,7 +111,7 @@ namespace WordWorldWebApp.Api
 
                 if (usedIndices == null)
                 {
-                    throw new LetterNotInInventoryException(); // GetIndices isn't working: TODO: fix
+                    throw new ActionArgumentException(); // GetIndices isn't working: TODO: fix
 
                     // if the caller didn't specify the indices of used letters, we choose a valid array of indices arbitrarily
                     usedIndices = player.Inventory.GetIndices(placedLetters);
@@ -122,7 +127,7 @@ namespace WordWorldWebApp.Api
                     "x" => board.WriteX,
                     "y" => board.WriteY,
 
-                    _ => throw new ArgumentException()
+                    _ => throw new ActionArgumentException()
                 };
 
                 if (method((x, y), word))
