@@ -36,6 +36,8 @@ namespace WordWorldWebApp.Services
                 _cachedLeaderboard = (await _playerManager.GetAllPlayersAsync())
                     .OrderByDescending(player => player.Score)
                     .ToArray();
+
+                _cachedLeaderboardDateTime = DateTime.Now;
             }
 
             return _cachedLeaderboard;
