@@ -38,8 +38,8 @@ export class GameContainer extends React.Component {
     // (newLetters je počet písmenek, která byla vyměněna - to je použito pro animaci nově vylosovaných písmen)
     // ((český překlad uveden v zájmu jednoznačnosti, anžto po anglicku není jasné jestli 'drawn' znamená 'nakreslený' nebo 'vylosovaný'))
     fetchStatus() {
-        // WIP: sometimes this doesn't work correctly and results in the client inventory not matching the server inventory => FIX!!!
-        // likely culprit: when confirming word, the server may use same letter, but at different index
+        // DONE: sometimes this doesn't work correctly and results in the client inventory not matching the server inventory => FIX!!!
+        // confirmed culprit: when confirming word, the server may use same letter, but at different index
 
         let oldLetters = this.state.game.inventory.length - this.state.game.usedLetterKeys.length + 1; // how many letters will stay
 
@@ -48,7 +48,7 @@ export class GameContainer extends React.Component {
             this.cache.fetchingStatusRequest.abort();
         }
 
-        // TODO: do this without jQuery?
+        // TODO: do this without jQuery
         this.cache.fetchingStatusRequest = $.getJSON(`/game/status?token=${PLAYER_TOKEN}`, data => {
             if (data.status == "ok") {
                 let biggestCurrentKey = this.state.game.inventory.reduce((prev, curr) => Math.max(prev, curr.key), 0);

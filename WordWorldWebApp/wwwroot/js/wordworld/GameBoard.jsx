@@ -222,11 +222,15 @@ export class GameBoard extends React.Component {
         let h = y2 - y + 1;
 
         this.cache.fetchingBoardRequest = $.getJSON(`/game/scan?token=${PLAYER_TOKEN}&x=${x}&y=${y}&w=${w}&h=${h}`, data => {
-            if (data.status == "ok") {                
+            if (data.status == "ok") {
                 this.setState({
                     boardRect: { x: x, y: y, w: w, h: h },
                     boardArray: data.data.board
-                });                
+                });
+            } else if (data.status == "player_not_found") {
+                // if the player was not found (likely removed due to inactivity) we redirect to homepage
+                // TODO: handle this somewhere else (it's not really a concern of the game board)
+                window.location.href = "/";
             }
         }).always(() => {
             this.cache.fetchingBoardRequest = null;
