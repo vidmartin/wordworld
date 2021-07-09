@@ -231,7 +231,7 @@ button:active {
 }
 
 .username-prompt label {
-    font-size: 0.3cm;
+    font-size: 0.35cm;
     color: var(--color-darker-light-gray);
     text-align: left;
 
@@ -254,7 +254,7 @@ select {
 
 .validation-error {
     color: var(--color-nok);
-    font-size: 0.3cm;
+    font-size: 0.35cm;
     text-align: left;
     margin: 0.1cm 0.1cm 0 0.1cm;
 }
