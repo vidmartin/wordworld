@@ -61,6 +61,8 @@ namespace WordWorldWebApp
                 .AddWordRater("english", new WordRater().LoadDefaultCharMap())
                 .AddWordRater("czech", new WordRater().LoadCharMap("a:2,á:4,b:6,c:6,è:10,d:3,ï:20,e:2,é:7,ì:6,f:15,g:15,h:8,i:2,í:3,j:5,k:3,l:2,m:3,n:2,ò:20,o:1,ó:20,p:3,q:20,r:3,ø:8,s:2,š:10,t:2,:20,u:3,ú:15,ù:10,v:2,w:20,x:20,y:5,ı:10,z:5,:10")));
 
+            services.AddSingleton<LeaderboardManager>();
+
             services.AddTransient<MoveChecker>();
 
             services.AddHostedService<PlayerCleaner>();

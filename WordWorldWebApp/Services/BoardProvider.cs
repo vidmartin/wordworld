@@ -6,6 +6,9 @@ using WordWorldWebApp.Game;
 
 namespace WordWorldWebApp.Services
 {
+    /// <summary>
+    /// manages game boards; should be singleton
+    /// </summary>
     public class BoardProvider
     {
         private readonly Dictionary<string, Board> _boards = new Dictionary<string, Board>();

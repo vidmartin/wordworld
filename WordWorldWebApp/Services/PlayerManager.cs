@@ -10,6 +10,9 @@ using WordWorldWebApp.Utils;
 
 namespace WordWorldWebApp.Services
 {
+    /// <summary>
+    /// manages active players; should be singleton
+    /// </summary>
     public class PlayerManager : ILockable
     {
         private class _Player : Player
