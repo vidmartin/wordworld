@@ -10,8 +10,12 @@ namespace WordWorldWebApp.Services
 {
     public class WordSet
     {
+        public const char JOKER = '*';
+
         private string _letterRange;
         private TrieNode _root;
+
+        public TrieNode Root => _root;
 
         public WordSet SetLetterRange(string letterRange)
         {
@@ -50,7 +54,7 @@ namespace WordWorldWebApp.Services
 
         public string[] Match(string pattern)
         {
-            return _root.GetMatchingWords(pattern, '*');
+            return _root.GetMatchingWords(pattern, JOKER);
         }
 
         private static readonly Random _RANDOM = new Random();

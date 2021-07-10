@@ -70,7 +70,7 @@ namespace WordWorldWebApp.DataStructures
 
         public int AlphabetLength => _letterRanges.Sum(tuple => tuple.Item2 - tuple.Item1 + 1);
 
-        public TrieNode GetChild(char letter)
+        public TrieNode? GetChild(char letter)
         {
             if (_children != null)
             {

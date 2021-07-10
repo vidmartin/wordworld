@@ -87,7 +87,18 @@ namespace WordWorldWebApp.Controllers
             return Ok(ApiResponse.Success(PlayerStatus.From(player)));
         }
 
-        public async Task<IActionResult> Write(string token, string word, string direction, int x, int y, string used)
+        /// <summary>
+        /// an action that attempts to write the given word as the given player onto the corresponding board
+        /// </summary>
+        /// <param name="token">player's token</param>
+        /// <param name="word">the word that is supposed to be written; can contain jokers</param>
+        /// <param name="direction">the direction in which the word is supposed to be written</param>
+        /// <param name="x">the x coordinate of the first letter placed</param>
+        /// <param name="y">the y coordinate of the first letter placed</param>
+        /// <param name="used">the indexes of the used letters in the player's inventory</param>
+        /// <param name="spec">if the word contains jokers, multiple different words might be possible; this optional argument is used to specify, which word is meant</param>
+        /// <returns></returns>
+        public async Task<IActionResult> Write(string token, string word, string direction, int x, int y, string used, string spec = null)
         {                                       
             var player = await FetchPlayerAsync(token, true);
             var board = player.Board;
