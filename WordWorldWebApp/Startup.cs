@@ -54,8 +54,8 @@ namespace WordWorldWebApp
                 .AddWordSet("czech", new WordSet().SetLetterRange("a-z,á-").LoadFromFile("./dict/czech.txt")));
 
             services.AddSingleton<LetterBagProvider>(p => new LetterBagProvider(p)
-                .AddLetterBag("english", new SimpleLetterBag("eeeeeeeeeeeetttttttttaaaaaaaaoooooooiiiiiiinnnnnnnsssssshhhhhhrrrrrrddddllllcccuuummmwwwfffggyyppbbvklxqz"))
-                .AddLetterBag("czech", new SimpleLetterBag("ooooooooeeeeeeeennnnnnnaaaaaaattttttvvvvvsssssiiiillllkkkkrrrrddddpppííímmmuuuááázzjjyyììccbbééhøıèšùfgòxóïwq")));
+                .AddLetterBag("english", new SimpleLetterBag("*****eeeeeeeeeeeetttttttttaaaaaaaaoooooooiiiiiiinnnnnnnsssssshhhhhhrrrrrrddddllllcccuuummmwwwfffggyyppbbvklxqz"))
+                .AddLetterBag("czech", new SimpleLetterBag("*****ooooooooeeeeeeeennnnnnnaaaaaaattttttvvvvvsssssiiiillllkkkkrrrrddddpppííímmmuuuááázzjjyyììccbbééhøıèšùfgòxóïwq")));
 
             services.AddSingleton<WordRaterProvider>(p => new WordRaterProvider()
                 .AddWordRater("english", new WordRater().LoadDefaultCharMap())

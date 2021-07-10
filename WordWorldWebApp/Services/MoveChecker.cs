@@ -27,11 +27,13 @@ namespace WordWorldWebApp.Services
         {
             public string fullWord;
             public List<char> placedLetters;
+            public List<char> placedJokers;
 
-            public PlacementPossibility(string fullWord, IEnumerable<char> placedLetters)
+            public PlacementPossibility(string fullWord, IEnumerable<char> placedLetters, IEnumerable<char> placedJokers)
             {
                 this.fullWord = fullWord;
-                this.placedLetters = placedLetters is List<char> l ? l : new List<char>(placedLetters);
+                this.placedLetters = placedLetters is List<char> l1 ? l1 : new List<char>(placedLetters);
+                this.placedJokers = placedJokers is List<char> l2 ? l2 : new List<char>(placedJokers);
             }            
         }
 
@@ -39,8 +41,8 @@ namespace WordWorldWebApp.Services
         {
             public TrieNode? node;
 
-            public _PlacementPossibility(string fullWord, IEnumerable<char> placedLetters, TrieNode node)
-                : base(fullWord, placedLetters)
+            public _PlacementPossibility(string fullWord, IEnumerable<char> placedLetters, IEnumerable<char> placedJokers, TrieNode node)
+                : base(fullWord, placedLetters, placedJokers)
             {
                 this.node = node;
             }
@@ -97,7 +99,7 @@ namespace WordWorldWebApp.Services
 
             string fullPattern = precedingString + wordPattern + succeedingString;
 
-            _PlacementPossibility[] possibilities = new[] { new _PlacementPossibility("", new char[0], wordSet.Root) };
+            _PlacementPossibility[] possibilities = new[] { new _PlacementPossibility("", new char[0], new char[0], wordSet.Root) };
 
             for (int i = 0; i < fullPattern.Length; i++)
             {
@@ -115,9 +117,10 @@ namespace WordWorldWebApp.Services
                             => possibility.node.Children.Select(node
                                 => new _PlacementPossibility(
                                     possibility.fullWord + node.Letter,
+                                    possibility.placedLetters,
                                     currentCharOnBoard == ' ' ?
-                                        possibility.placedLetters.Concat(new[] { node.Letter }) : // if the current cell of the board is empty, we need to put down this letter
-                                        possibility.placedLetters, // otherwise, we don't need to put down anything
+                                        possibility.placedJokers.Concat(new[] { node.Letter }) : // if the current cell of the board is empty, we need to put down this letter
+                                        possibility.placedJokers, // otherwise, we don't need to put down anything
                                     node
                                 )
                             )
@@ -358,28 +361,29 @@ namespace WordWorldWebApp.Services
 
             // if the set of letters in the inventory at the corresponding indices matches the used letters, indices are valid
             return Enumerable.SequenceEqual(
-                indices.Distinct().Select(inventory.ElementAt).OrderBy(ch => ch),
-                letters.OrderBy(ch => ch));
+                indices.Distinct().Select(inventory.ElementAt).Where(ch => ch != WordSet.JOKER).OrderBy(ch => ch),
+                letters.OrderBy(ch => ch),
+                CanTokenBeUsedAs.INSTANCE);
         }
 
-        //private class CanTokenBeUsedAs : IEqualityComparer<char>
-        //{
-        //    public static readonly CanTokenBeUsedAs INSTANCE = new CanTokenBeUsedAs();
+        private class CanTokenBeUsedAs : IEqualityComparer<char>
+        {
+            public static readonly CanTokenBeUsedAs INSTANCE = new CanTokenBeUsedAs();
 
-        //    public bool Equals(char x, char y)
-        //    {
-        //        if (x == WordSet.JOKER)
-        //        {
-        //            return true;
-        //        }
+            public bool Equals(char x, char y)
+            {
+                if (x == WordSet.JOKER)
+                {
+                    return true;
+                }
 
-        //        return x == y;
-        //    }
+                return x == y;
+            }
 
-        //    public int GetHashCode([DisallowNull] char obj)
-        //    {
-        //        return obj.GetHashCode();
-        //    }
-        //}
+            public int GetHashCode([DisallowNull] char obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
     }
 }

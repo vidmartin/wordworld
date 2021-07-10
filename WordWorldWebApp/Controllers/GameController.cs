@@ -119,8 +119,10 @@ namespace WordWorldWebApp.Controllers
                     throw new InvalidOperationException();
                 }
 
-                // only consider the possibilities, in which the player actually placed a letter
-                possibilities = possibilities.Where(possibility => possibility.placedLetters.Any()).ToArray();
+                // only consider the possibilities, in which the player actually placed a letter or a joker
+                possibilities = possibilities
+                    .Where(possibility => possibility.placedLetters.Any() || possibility.placedJokers.Any())
+                    .ToArray();
 
                 if (possibilities.Length == 0)
                 {
@@ -128,9 +130,11 @@ namespace WordWorldWebApp.Controllers
                     throw new InvalidPlacementException(x, y);
                 }
 
-                PlacementPossibility chosenPossibility = spec == null ?
-                    possibilities.SingleOrDefault() :
-                    possibilities.SingleOrDefault(possibility => possibility.fullWord == spec);
+                PlacementPossibility chosenPossibility = spec switch
+                {
+                    null => possibilities.Length == 1 ? possibilities.First() : null,
+                    string => possibilities.FirstOrDefault(possibility => possibility.fullWord == spec)
+                };
 
                 if (chosenPossibility == null)
                 {
@@ -159,7 +163,7 @@ namespace WordWorldWebApp.Controllers
                     _ => throw new ActionArgumentException()
                 };
 
-                if (method((x, y), word))
+                if (method((x, y), word.FillIn(ch => ch == '*', chosenPossibility.placedJokers).Stringify()))
                 {
                     lock (player)
                     {
