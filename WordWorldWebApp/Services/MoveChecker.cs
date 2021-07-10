@@ -348,7 +348,7 @@ namespace WordWorldWebApp.Services
         /// <summary>
         /// returns true, if indices are valid, false otherwise
         /// </summary>
-        public bool CheckUsedLetterIndices(int[] indices, char[] letters, IEnumerable<char> inventory)
+        public bool CheckUsedLetterIndices(int[] indices, IEnumerable<char> letters, IEnumerable<char> inventory)
         {
             if (indices.Any(i => i < 0 || i > inventory.Count()))
             {

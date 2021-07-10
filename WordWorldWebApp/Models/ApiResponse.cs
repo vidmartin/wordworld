@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WordWorldWebApp.Exceptions;
+using WordWorldWebApp.Utils;
 
 namespace WordWorldWebApp.Models
 {
@@ -21,12 +22,12 @@ namespace WordWorldWebApp.Models
             };
         }
 
-        public static ApiResponse Fail(string error)
+        public static ApiResponse Fail(string error, object data = null)
         {
             return new ApiResponse()
             {
                 Status = error,
-                Data = null
+                Data = data
             };
         }
 
@@ -41,6 +42,7 @@ namespace WordWorldWebApp.Models
                 WordTooShortException => "word_too_short",
                 IndexOutOfRangeException => "out_of_range",
                 ActionArgumentException => "invalid_arguments",
+                AmbiguousJokerException => "ambiguous_joker",
 
                 _ => null
             };
@@ -50,7 +52,7 @@ namespace WordWorldWebApp.Models
                 return null;
             }
 
-            return Fail(code);
+            return Fail(code, (exception as IProvideErrorData)?.GetErrorData());
         }
     }
 }

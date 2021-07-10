@@ -12,6 +12,7 @@ using WordWorldWebApp.Game;
 using WordWorldWebApp.Models;
 using WordWorldWebApp.Services;
 using WordWorldWebApp.Utils;
+using static WordWorldWebApp.Services.MoveChecker;
 
 namespace WordWorldWebApp.Controllers
 {
@@ -102,6 +103,7 @@ namespace WordWorldWebApp.Controllers
         {                                       
             var player = await FetchPlayerAsync(token, true);
             var board = player.Board;
+            var wordSet = _wordSetProvider.GetWordSet(_boardProvider.WordSetOf(board));
 
             // TODO: handle FormatException
             int[] usedIndices = used?.Split('_')?.Select(int.Parse)?.ToArray(); // ?? player.Inventory.GetIndices(word);
@@ -109,12 +111,31 @@ namespace WordWorldWebApp.Controllers
             return await board.DoAsync(() =>
             {
                 // if there is a problem, this will throw; otherwise, it returns how many letters were placed by player
-                _moveChecker.AssertMoveValidUnsafe(player, (x, y), direction, word, out char[] placedLetters);
+                var possibilities = _moveChecker.GetPlacementPossibilities(wordSet, board, (x, y), direction, word);
 
-                if (placedLetters.Length <= 0)
+                if (possibilities.Length == 0)
                 {
-                    // if no letters from players inventory were used (value returned by AssertMoveValidAsync), something is not right
+                    // GetPlacementPossibilities should never return an empty array
+                    throw new InvalidOperationException();
+                }
+
+                // only consider the possibilities, in which the player actually placed a letter
+                possibilities = possibilities.Where(possibility => possibility.placedLetters.Any()).ToArray();
+
+                if (possibilities.Length == 0)
+                {
+                    // if the array of possibilities is empty now, it means that the player didn't place any letters => error
                     throw new InvalidPlacementException(x, y);
+                }
+
+                PlacementPossibility chosenPossibility = spec == null ?
+                    possibilities.SingleOrDefault() :
+                    possibilities.SingleOrDefault(possibility => possibility.fullWord == spec);
+
+                if (chosenPossibility == null)
+                {
+                    // if there is more than one possibility, the player has to choose one unambiguously using the "spec" parameter
+                    throw new AmbiguousJokerException(possibilities);
                 }
 
                 if (usedIndices == null)
@@ -122,10 +143,10 @@ namespace WordWorldWebApp.Controllers
                     throw new ActionArgumentException(); // GetIndices isn't working: TODO: fix
 
                     // if the caller didn't specify the indices of used letters, we choose a valid array of indices arbitrarily
-                    usedIndices = player.Inventory.GetIndices(placedLetters);
+                    usedIndices = player.Inventory.GetIndices(chosenPossibility.placedLetters);
                 }
 
-                if (!_moveChecker.CheckUsedLetterIndices(usedIndices, placedLetters, player.Inventory))
+                if (!_moveChecker.CheckUsedLetterIndices(usedIndices, chosenPossibility.placedLetters, player.Inventory))
                 {
                     throw new LetterNotInInventoryException();
                 }
@@ -142,7 +163,7 @@ namespace WordWorldWebApp.Controllers
                 {
                     lock (player)
                     {
-                        player.Score += _wordRaterProvider.GetWordRater(_boardProvider.WordRaterOf(board)).Rate(placedLetters, word.Length);
+                        player.Score += _wordRaterProvider.GetWordRater(_boardProvider.WordRaterOf(board)).Rate(chosenPossibility.placedLetters, word.Length);
                         player.ReplaceLetters(usedIndices,
                             _letterBagProvider.GetLetterBag(_boardProvider.LetterBagOf(board)).Pull(usedIndices.Length)); // DONE???: fix this (word length doesn't always match the count of used letters)
                     }

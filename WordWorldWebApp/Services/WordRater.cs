@@ -38,7 +38,7 @@ namespace WordWorldWebApp.Services
         //    return s.Sum(Rate) * s.Length;
         //}
 
-        public int Rate(char[] usedChars, int totalWordLength)
+        public int Rate(IEnumerable<char> usedChars, int totalWordLength)
         {
             return usedChars.Sum(Rate) * totalWordLength;
         }
