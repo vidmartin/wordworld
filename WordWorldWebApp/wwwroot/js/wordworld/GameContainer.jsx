@@ -44,6 +44,7 @@ export class GameContainer extends React.Component {
 
     async fetchStatus() {
         if (this.cache.isInitiatingFetchStatus == true) {
+            // just to be safe
             return;
         }
 
@@ -165,56 +166,57 @@ export class GameContainer extends React.Component {
         this.sendWriteWordRequest(url);
     }
 
-    sendWriteWordRequest(url) {
-        fetch(url).then(async response => {
-            if (response.ok != true) {
-                console.log("nope 1");
-                return; // HTTP fail
+    async sendWriteWordRequest(url) {
+        let response = await fetch(url);
+
+        if (response.ok != true) {
+            console.error(`couldn't write word - http error '${response.statusText}'`);
+            return;
+        }
+
+        let json = await response.json();
+
+        console.log(`writing word - received json: ${json}`);
+
+        if (json.status != "ok") {
+            console.warn(`couldn't write word - api error '${json.status}'`);
+
+            if (json.status == "ambiguous_joker") {
+                // if there is a case of the ambiguous joker, set the state this way to trigger the ambiguous joker resolving menu
+                console.log("ambiguous joker!!");                
+
+                this.setState({
+                    ambiguousJokerUrl: url,
+                    ambiguousJokerOptions: json.data.possibilities
+                });
+
+                return;
             }
 
-            let data = await response.json();
-
-            console.log(data);
-
-            if (data.status != "ok") {
-                if (data.status == "ambiguous_joker") {
-                    // if there is a case of the ambiguous joker, set the state this way to trigger the ambiguous joker resolving menu
-                    console.log("ambiguous joker!!");
-                    console.log(data);
-
-                    this.setState({
-                        ambiguousJokerUrl: url,
-                        ambiguousJokerOptions: data.data.possibilities
-                    });
-
-                    return;
-                }
-
-                if (data.status in STATUS_ERRORS) {
-                    MessageBoard.writeError(STATUS_ERRORS[data.status]);
-                } else {
-                    MessageBoard.writeError(`[${data.status}]`);
-                }
-                console.log("nope 2");
-                return; // backend isn't happy
+            if (json.status in STATUS_ERRORS) {
+                MessageBoard.writeError(STATUS_ERRORS[json.status]);
+            } else {
+                MessageBoard.writeError(`[${json.status}]`);
             }
+            
+            return; // backend isn't happy
+        }
 
-            let deltaScore = data.data.score - this.state.game.score;
+        let deltaScore = json.data.score - this.state.game.score;
 
-            this.setState({
-                game: {
-                    ...this.state.game,
-                    score: data.data.score
-                }
-            });
-
-            MessageBoard.writeOk(getCelebratoryStatementFromScore(deltaScore));
-
-            console.log(":)");
-            this.board.current.fetchBoard();
-            this.board.current.clearWord();
-            this.fetchStatus();
+        this.setState({
+            game: {
+                ...this.state.game,
+                score: json.data.score
+            }
         });
+
+        MessageBoard.writeOk(getCelebratoryStatementFromScore(deltaScore));
+
+        console.log(":)");
+        this.board.current.fetchBoard();
+        this.board.current.clearWord();
+        this.fetchStatus();
     }
 
     handleWordCancel() {
