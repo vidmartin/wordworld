@@ -19,7 +19,7 @@ namespace WordWorldWebApp.Controllers
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public const int START_LETTERS = 8;
+        public const int START_LETTERS = 9;
 
         public HomeController(IServiceProvider serviceProvider)
         {
