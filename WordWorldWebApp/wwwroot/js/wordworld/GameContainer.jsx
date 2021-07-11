@@ -17,12 +17,14 @@ export class GameContainer extends React.Component {
         };
 
         this.cache = {
-            fetchingStatusRequest: null
+            fetchingStatusRequest: null,
+            isInitiatingFetchStatus: false
         };
 
         this.board = React.createRef();
 
         this.fetchStatus = this.fetchStatus.bind(this);
+        this.fetchStatusInner = this.fetchStatusUnsafe.bind(this);
         this.handleLetterSlideIn = this.handleLetterSlideIn.bind(this);
         this.handleLetterDrag = this.handleLetterDrag.bind(this);
         this.handleLetterDrop = this.handleLetterDrop.bind(this);
@@ -32,10 +34,31 @@ export class GameContainer extends React.Component {
         this.sendWriteWordRequest = this.sendWriteWordRequest.bind(this);
         this.handleAmbiguousJokerResolve = this.handleAmbiguousJokerResolve.bind(this);
         this.handleAmbiguousJokerResolveCancel = this.handleAmbiguousJokerResolveCancel.bind(this);
+
+        this.abortController = new AbortController(); // used to cancel fetch requests
     }
 
     componentDidMount() {
         // this.fetchStatus(); 
+    }
+
+    async fetchStatus() {
+        if (this.cache.isInitiatingFetchStatus == true) {
+            return;
+        }
+
+        this.cache.isInitiatingFetchStatus = true;
+
+        // we don't wanna be fetching status multiple times at once
+        if (this.cache.fetchingStatusRequest != null) {
+            this.abortController.abort();
+            await this.cache.fetchingStatusRequest.catch(() => { });
+        }
+
+        this.cache.fetchingStatusRequest = this.fetchStatusUnsafe()
+            .finally(() => this.cache.fetchingStatusRequest = null);
+
+        this.cache.isInitiatingFetchStatus = false;
     }
 
     // fetch player's score & inventory and update state accordingly
@@ -43,46 +66,44 @@ export class GameContainer extends React.Component {
     // newLetters is the amount of letters that were replaced - this is used to animate the newly drawn letters
     // (newLetters je počet písmenek, která byla vyměněna - to je použito pro animaci nově vylosovaných písmen)
     // ((český překlad uveden v zájmu jednoznačnosti, anžto po anglicku není jasné jestli 'drawn' znamená 'nakreslený' nebo 'vylosovaný'))
-    fetchStatus() {
-        // DONE: sometimes this doesn't work correctly and results in the client inventory not matching the server inventory => FIX!!!
-        // confirmed culprit: when confirming word, the server may use same letter, but at different index
-
+    async fetchStatusUnsafe() {
         let oldLetters = this.state.game.inventory.length - this.state.game.usedLetterKeys.length + 1; // how many letters will stay
 
-        if (this.cache.fetchingStatusRequest != null) {
-            // we don't wanna be fetching status multiple times at once
-            this.cache.fetchingStatusRequest.abort();
+        let response = await fetch(`/game/status?token=${PLAYER_TOKEN}`, { signal: this.abortController.signal });
+
+        if (response.ok != true) {
+            console.error(`couldn't fetch status - http error '${response.statusText}'`);
+            return;
         }
 
-        // TODO: do this without jQuery
-        this.cache.fetchingStatusRequest = $.getJSON(`/game/status?token=${PLAYER_TOKEN}`, data => {
-            if (data.status == "ok") {
-                let biggestCurrentKey = this.state.game.inventory.reduce((prev, curr) => Math.max(prev, curr.key), 0);
+        let json = await response.json();
 
-                let letterArray = Array.from(data.data.inventory); // array from string
-                let minNewIndex = oldLetters - 1;
-                letterArray = letterArray
-                    .filter((_, i) => i >= minNewIndex)
-                    .map((ch, i) => ({ key: biggestCurrentKey + i + 1, letter: ch }));
+        if (json.status != "ok") {
+            console.error(`couldn't fetch status - api error '${json.status}'`);
+            return;
+        }
 
-                this.setState({
-                    game: { ...this.state.game,
-                        score: data.data.score,
-                        inventory: this.state.game.inventory
-                            .filter(item => this.state.game.usedLetterKeys.indexOf(item.key) == -1)
-                            .concat(letterArray),
-                        lettersToAnimate: letterArray.length,
-                        usedLetterKeys: []
-                    }
-                });
+        let biggestCurrentKey = this.state.game.inventory.reduce((prev, curr) => Math.max(prev, curr.key), 0);
 
-                this.cache.unfetchedNewLetters = 0;
+        let letterArray = Array.from(json.data.inventory); // array from string
+        let minNewIndex = oldLetters - 1;
+        letterArray = letterArray
+            .filter((_, i) => i >= minNewIndex)
+            .map((ch, i) => ({ key: biggestCurrentKey + i + 1, letter: ch }));
+
+        this.setState({
+            game: {
+                ...this.state.game,
+                score: json.data.score,
+                inventory: this.state.game.inventory
+                    .filter(item => this.state.game.usedLetterKeys.indexOf(item.key) == -1)
+                    .concat(letterArray),
+                lettersToAnimate: letterArray.length,
+                usedLetterKeys: []
             }
-        }).fail(() => {
-            console.log("status fetch failed");
-        }).always(() => {
-            this.cache.fetchingStatusRequest = null;
         });
+
+        // this.cache.unfetchedNewLetters = 0;
     }
 
     handleLetterSlideIn() {
