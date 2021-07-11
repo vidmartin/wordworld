@@ -1,6 +1,6 @@
 ﻿
 import { GameContainer } from "./GameContainer.jsx";
 
-$(document).ready(function () {
-    ReactDOM.render(<GameContainer />, $("#react-target").get(0));
-});
+export function render() {
+    ReactDOM.render(<GameContainer />, document.querySelector("#react-target"));
+}

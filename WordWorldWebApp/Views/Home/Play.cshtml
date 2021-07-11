@@ -42,13 +42,22 @@
 
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/16.13.0/umd/react.development.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.13.0/umd/react-dom.development.js"></script>
-    <script src="@Url.Content("~/js/jquery/jquery.js")"></script>
-    <script type="module" src="@Url.Content("~/js/wordworld/render.jsx")"></script>
 
-</head>
+    @if (false)
+    {
+        <!-- <script src="@Url.Content("~/js/jquery/jquery.js")"></script> -->
+        <!-- <script type="module" src="@Url.Content("~/js/wordworld/render.jsx")"></script> -->
+    }
+
+    </head>
     <body>
         <div id="react-target">
-            <!-- this is where render.jsx will render all the components -->
         </div>
+
+        <script type="module">
+            import { render } from "/js/wordworld/render.jsx";
+            // when the body is loaded, render the react
+            render();
+        </script>
     </body>
 </html>
