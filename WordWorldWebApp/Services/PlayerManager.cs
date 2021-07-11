@@ -44,7 +44,7 @@ namespace WordWorldWebApp.Services
         public void ValidatePlayer(Player player)
         {
             var context = new ValidationContext(player);
-            Validator.ValidateObject(player, context);
+            Validator.ValidateObject(player, context, true);
         }
         
         private Player NewUnsafe(Board board, string username, IEnumerable<char> letters)
