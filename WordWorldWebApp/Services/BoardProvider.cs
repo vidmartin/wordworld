@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WordWorldWebApp.Config;
 using WordWorldWebApp.Game;
 
 namespace WordWorldWebApp.Services
@@ -55,6 +56,14 @@ namespace WordWorldWebApp.Services
                 _parent._wordSets[_board] = key;
 
                 return this;
+            }
+
+            public IBoardConfigurer UseConfig(BoardConfig config)
+            {
+                return this.UseDisplayName(config.DisplayName)
+                    .UseLetterBag(config.LetterBag)
+                    .UseWordRater(config.WordRater)
+                    .UseWordSet(config.WordSet);
             }
         }
 

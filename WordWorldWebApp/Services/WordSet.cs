@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WordWorldWebApp.Config;
 using WordWorldWebApp.DataStructures;
 
 namespace WordWorldWebApp.Services
@@ -50,6 +51,12 @@ namespace WordWorldWebApp.Services
             }
 
             return this;
+        }
+
+        public WordSet UseConfig(WordSetConfig config)
+        {
+            return this.SetLetterRange(config.LetterRange)
+                .LoadFromFile(config.DictionaryPath);
         }
 
         public bool ContainsWord(string word)

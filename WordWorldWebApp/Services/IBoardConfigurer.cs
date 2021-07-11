@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WordWorldWebApp.Config;
 
 namespace WordWorldWebApp.Services
 {
@@ -11,5 +12,6 @@ namespace WordWorldWebApp.Services
         IBoardConfigurer UseLetterBag(string key);
         IBoardConfigurer UseWordRater(string key);
         IBoardConfigurer UseDisplayName(string displayName);
+        IBoardConfigurer UseConfig(BoardConfig config);
     }
 }

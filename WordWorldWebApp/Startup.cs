@@ -13,15 +13,26 @@ using JavaScriptEngineSwitcher.V8;
 using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using React.AspNet;
 using WordWorldWebApp.HostedServices;
+using Microsoft.Extensions.Configuration;
+using WordWorldWebApp.Config;
 
 namespace WordWorldWebApp
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<WordWorldConfig>(_configuration.GetSection(WordWorldConfig.CONFIG_KEY));
+
             services.AddMvc();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -31,41 +42,63 @@ namespace WordWorldWebApp
             services.AddJsEngineSwitcher(options => options.DefaultEngineName = V8JsEngine.EngineName)
                 .AddV8();
 
-            services.AddSingleton<BoardProvider>(_ => new BoardProvider()
-                .AddBoard("english1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
-                    .UseLetterBag("english")
-                    .UseWordSet("english")
-                    .UseWordRater("english")
-                    .UseDisplayName("English"))
-                .AddBoard("czech1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
-                    .UseLetterBag("czech")
-                    .UseWordSet("czech")
-                    .UseWordRater("czech")
-                    .UseDisplayName("»esk·"))
-                .SetDefaultBoard("english1"));
+            //services.AddSingleton<BoardProvider>(_ => new BoardProvider()
+            //    .AddBoard("english1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
+            //        .UseLetterBag("english")
+            //        .UseWordSet("english")
+            //        .UseWordRater("english")
+            //        .UseDisplayName("English"))
+            //    .AddBoard("czech1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
+            //        .UseLetterBag("czech")
+            //        .UseWordSet("czech")
+            //        .UseWordRater("czech")
+            //        .UseDisplayName("»esk·"))
+            //    .SetDefaultBoard("english1"));
+
+            DoStuffBasedOnConfig(services);
 
             services.AddSingleton<PlayerManager>();
-            
-            services.AddSingleton<WordRater>(_ => new WordRater()
-                .LoadDefaultCharMap());
 
-            services.AddSingleton<WordSetProvider>(_ => new WordSetProvider()
-                .AddWordSet("english", new WordSet().SetLetterRange("a-z").LoadFromFile("./dict/english.txt"))
-                .AddWordSet("czech", new WordSet().SetLetterRange("a-z,·-û").LoadFromFile("./dict/czech.txt")));
+            //services.AddSingleton<WordSetProvider>(_ => new WordSetProvider()
+            //    .AddWordSet("english", new WordSet().SetLetterRange("a-z").LoadFromFile("./dict/english.txt"))
+            //    .AddWordSet("czech", new WordSet().SetLetterRange("a-z,·-û").LoadFromFile("./dict/czech.txt")));
 
-            services.AddSingleton<LetterBagProvider>(p => new LetterBagProvider(p)
-                .AddLetterBag("english", new SimpleLetterBag("*****eeeeeeeeeeeetttttttttaaaaaaaaoooooooiiiiiiinnnnnnnsssssshhhhhhrrrrrrddddllllcccuuummmwwwfffggyyppbbvklxqz"))
-                .AddLetterBag("czech", new SimpleLetterBag("*****ooooooooeeeeeeeennnnnnnaaaaaaattttttvvvvvsssssiiiillllkkkkrrrrddddpppÌÌÌmmmuuu···zzjjyyÏÏccbbÈÈh¯˝ûËö˘fgÚxùÛÔwq")));
+            //services.AddSingleton<LetterBagProvider>(p => new LetterBagProvider(p)
+            //    .AddLetterBag("english", new SimpleLetterBag("*****eeeeeeeeeeeetttttttttaaaaaaaaoooooooiiiiiiinnnnnnnsssssshhhhhhrrrrrrddddllllcccuuummmwwwfffggyyppbbvklxqz"))
+            //    .AddLetterBag("czech", new SimpleLetterBag("*****ooooooooeeeeeeeennnnnnnaaaaaaattttttvvvvvsssssiiiillllkkkkrrrrddddpppÌÌÌmmmuuu···zzjjyyÏÏccbbÈÈh¯˝ûËö˘fgÚxùÛÔwq")));
 
-            services.AddSingleton<WordRaterProvider>(p => new WordRaterProvider()
-                .AddWordRater("english", new WordRater().LoadDefaultCharMap())
-                .AddWordRater("czech", new WordRater().LoadCharMap("a:2,·:4,b:6,c:6,Ë:10,d:3,Ô:20,e:2,È:7,Ï:6,f:15,g:15,h:8,i:2,Ì:3,j:5,k:3,l:2,m:3,n:2,Ú:20,o:1,Û:20,p:3,q:20,r:3,¯:8,s:2,ö:10,t:2,ù:20,u:3,˙:15,˘:10,v:2,w:20,x:20,y:5,˝:10,z:5,û:10")));
+            //services.AddSingleton<WordRaterProvider>(p => new WordRaterProvider()
+            //    .AddWordRater("english", new WordRater().LoadDefaultCharMap())
+            //    .AddWordRater("czech", new WordRater().LoadCharMap("a:2,·:4,b:6,c:6,Ë:10,d:3,Ô:20,e:2,È:7,Ï:6,f:15,g:15,h:8,i:2,Ì:3,j:5,k:3,l:2,m:3,n:2,Ú:20,o:1,Û:20,p:3,q:20,r:3,¯:8,s:2,ö:10,t:2,ù:20,u:3,˙:15,˘:10,v:2,w:20,x:20,y:5,˝:10,z:5,û:10")));
 
             services.AddSingleton<LeaderboardManager>();
 
             services.AddTransient<MoveChecker>();
 
             services.AddHostedService<PlayerCleaner>();
+        }
+
+        private void DoStuffBasedOnConfig(IServiceCollection services)
+        {
+            var config = new WordWorldConfig();
+            _configuration.Bind(WordWorldConfig.CONFIG_KEY, config);
+
+            services.AddSingleton<BoardProvider>(_ => config.Boards.Aggregate(new BoardProvider(),
+                (boardProvider, boardConfig) => boardProvider.AddBoard(boardConfig.Key,
+                    new ThreadSafeBoard(new ArrayBoard(boardConfig.Value.Width, boardConfig.Value.Height)),
+                        board => board.UseConfig(boardConfig.Value))));
+
+            services.AddSingleton<WordSetProvider>(_ => config.WordSets.Aggregate(new WordSetProvider(),
+                (wordSetProvider, wordSetConfig) => wordSetProvider.AddWordSet(wordSetConfig.Key,
+                    new WordSet().UseConfig(wordSetConfig.Value))));
+
+            services.AddSingleton<LetterBagProvider>(p => config.LetterBags.Aggregate(new LetterBagProvider(p),
+                (letterBagProvider, letterBagConfig) => letterBagProvider.AddLetterBag(letterBagConfig.Key,
+                    new SimpleLetterBag().UseConfig(letterBagConfig.Value))));
+
+            services.AddSingleton<WordRaterProvider>(_ => config.WordRaters.Aggregate(new WordRaterProvider(),
+                (wordRaterProvider, wordRaterConfig) => wordRaterProvider.AddWordRater(wordRaterConfig.Key,
+                    new WordRater().UseConfig(wordRaterConfig.Value))));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

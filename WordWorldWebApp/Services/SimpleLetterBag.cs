@@ -2,17 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WordWorldWebApp.Config;
 
 namespace WordWorldWebApp.Services
 {
     public class SimpleLetterBag : LetterBag
-    {
-        public SimpleLetterBag(string letters)
+    {      
+        public SimpleLetterBag UseLetters(string letters)
         {
-            Letters = letters;
+            this.Letters = letters;
+
+            return this;
         }
 
-        public string Letters { get; }        
+        public SimpleLetterBag UseConfig(LetterBagConfig config)
+        {
+            return this.UseLetters(config.Letters);
+        }
+
+        public string Letters { get; set; }        
 
         public override IEnumerable<char> Pull(int count)
         {
