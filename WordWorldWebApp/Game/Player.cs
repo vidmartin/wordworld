@@ -48,7 +48,8 @@ namespace WordWorldWebApp.Game
         public int Score { get; set; } = 0;       
         
         [Required(ErrorMessage = "Username must be filled in.")]
-        [MinLength(5, ErrorMessage = "Username must be at least 5 characters long.")]
+        [MinLength(4, ErrorMessage = "Username must be at least 4 characters long.")]
+        [MaxLength(10, ErrorMessage = "Username cannot be longer than 10 characters.")]
         [RegularExpression(@"\w+", ErrorMessage = "Username must only contain alphanumeric characters or underscores.")]
         public abstract string Username { get; }
     }
