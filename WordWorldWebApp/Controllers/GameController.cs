@@ -21,6 +21,7 @@ namespace WordWorldWebApp.Controllers
     public class GameController : Controller
     {
         public const int PLAYERS_ON_LEADERBOARD_COUNT = 5;
+        public const int MIN_WORD_LENGTH = 3;
 
         private readonly BoardProvider _boardProvider;
         private readonly PlayerManager _playerManager;
@@ -140,6 +141,11 @@ namespace WordWorldWebApp.Controllers
                 {
                     // if there is more than one possibility, the player has to choose one unambiguously using the "spec" parameter
                     throw new AmbiguousJokerException(possibilities);
+                }
+
+                if (chosenPossibility.fullWord.Length < MIN_WORD_LENGTH)
+                {
+                    throw new WordTooShortException(chosenPossibility.fullWord);
                 }
 
                 if (usedIndices == null)
