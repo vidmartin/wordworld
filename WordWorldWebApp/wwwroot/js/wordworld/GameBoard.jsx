@@ -42,7 +42,7 @@ export class GameBoard extends React.Component {
         this.wordStack = [];
 
         this.cache = {
-            fetchingBoardRequest: null,
+            isFetchingBoard: false,
             isDragging: false,
             dragStartMousePos: { x: 0, y: 0 },
             dragStartOrigin: props.game.origin,
@@ -197,42 +197,54 @@ export class GameBoard extends React.Component {
         this.setState(this.state);
     }
 
-    fetchBoard() {
-        if (this.cache.fetchingBoardRequest != null) {
+    async fetchBoard() {
+        if (this.cache.isFetchingBoard == true) {
+            // we don't want multiple requests at once
             return;
         }
 
-        let cellSize = this.getCellSize();
+        this.cache.isFetchingBoard = true;
 
-        let x = Math.floor(this.state.origin.x - this.canvas.current.width / 2 / cellSize.x - BOARD_RECT_PADDING);
-        let y = Math.floor(this.state.origin.y - this.canvas.current.height / 2 / cellSize.y - BOARD_RECT_PADDING);
+        try {
+            let cellSize = this.getCellSize();
 
-        x = Math.max(0, x);
-        y = Math.max(0, y);
+            let x = Math.floor(this.state.origin.x - this.canvas.current.width / 2 / cellSize.x - BOARD_RECT_PADDING);
+            let y = Math.floor(this.state.origin.y - this.canvas.current.height / 2 / cellSize.y - BOARD_RECT_PADDING);
 
-        let x2 = Math.floor(this.state.origin.x + this.canvas.current.width / 2 / cellSize.x + BOARD_RECT_PADDING);
-        let y2 = Math.floor(this.state.origin.y + this.canvas.current.height / 2 / cellSize.y + BOARD_RECT_PADDING);
+            x = Math.max(0, x);
+            y = Math.max(0, y);
 
-        x2 = Math.min(BOARD_SIZE.x, x2);
-        y2 = Math.min(BOARD_SIZE.y, y2);
+            let x2 = Math.floor(this.state.origin.x + this.canvas.current.width / 2 / cellSize.x + BOARD_RECT_PADDING);
+            let y2 = Math.floor(this.state.origin.y + this.canvas.current.height / 2 / cellSize.y + BOARD_RECT_PADDING);
 
-        let w = x2 - x + 1;
-        let h = y2 - y + 1;
+            x2 = Math.min(BOARD_SIZE.x, x2);
+            y2 = Math.min(BOARD_SIZE.y, y2);
 
-        this.cache.fetchingBoardRequest = $.getJSON(`/game/scan?token=${PLAYER_TOKEN}&x=${x}&y=${y}&w=${w}&h=${h}`, data => {
-            if (data.status == "ok") {
+            let w = x2 - x + 1;
+            let h = y2 - y + 1;
+
+            let response = await fetch(`/game/scan?token=${PLAYER_TOKEN}&x=${x}&y=${y}&w=${w}&h=${h}`);
+
+            if (response.ok != true) {
+                console.error(`board fetch failed - http error '${response.statusText}'`);
+                return;
+            }
+
+            let json = await response.json();
+
+            if (json.status == "ok") {
                 this.setState({
                     boardRect: { x: x, y: y, w: w, h: h },
-                    boardArray: data.data.board
+                    boardArray: json.data.board
                 });
-            } else if (data.status == "player_not_found") {
+            } else if (json.status == "player_not_found") {
                 // if the player was not found (likely removed due to inactivity) we redirect to homepage
                 // TODO: handle this somewhere else (it's not really a concern of the game board)
                 window.location.href = "/";
             }
-        }).always(() => {
-            this.cache.fetchingBoardRequest = null;
-        })
+        } finally {
+            this.cache.isFetchingBoard = false;
+        }
     }
 
     recalculateCanvasArea() {
