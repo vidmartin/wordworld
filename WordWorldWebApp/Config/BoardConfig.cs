@@ -13,5 +13,6 @@ namespace WordWorldWebApp.Config
         public string DisplayName { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public int Order { get; set; }
     }
 }

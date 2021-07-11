@@ -55,7 +55,7 @@ namespace WordWorldWebApp
             var config = new WordWorldConfig();
             _configuration.Bind(WordWorldConfig.CONFIG_KEY, config);
 
-            services.AddSingleton<BoardProvider>(_ => config.Boards.Aggregate(new BoardProvider(),
+            services.AddSingleton<BoardProvider>(_ => config.Boards.OrderBy(board => board.Value.Order).Aggregate(new BoardProvider(),
                 (boardProvider, boardConfig) => boardProvider.AddBoard(boardConfig.Key,
                     new ThreadSafeBoard(new ArrayBoard(boardConfig.Value.Width, boardConfig.Value.Height)),
                         board => board.UseConfig(boardConfig.Value))));
