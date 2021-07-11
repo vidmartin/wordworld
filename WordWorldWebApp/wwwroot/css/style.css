@@ -32,6 +32,18 @@ body {
     user-select: none;
 }
 
+a {
+    cursor: pointer;
+}
+
+h1 {
+    font-size: 0.7cm;
+}
+
+h2 {
+    font-size: 0.5cm;
+}
+
 .game-container {
     display: flex;
     flex-direction: column;
@@ -42,7 +54,7 @@ body {
 
 .game-board {
     flex-grow: 1;
-    //background-color: red;
+    /* background-color: red; */
     background-color: var(--color-white);
 }
 
@@ -206,6 +218,17 @@ button:active {
     opacity: 0.8;
 }
 
+@keyframes slide-in-from-left {
+    from {
+        transform: translateY(-3cm);
+        opacity: 0;
+    }
+
+    to {
+        transform: none;
+    }
+}
+
 .username-display {
     margin: 0.5cm;
     font-size: 0.6cm;
@@ -315,13 +338,65 @@ select {
     right: 0.5cm;
 }
 
-@keyframes slide-in-from-left {
+.overlay {
+    z-index: 20;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.popup {
+    width: 50%;
+    max-width: 10cm;
+    padding: 0.5cm;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    text-align: center;
+}
+
+    .popup::before {
+        content: "";
+        z-index: -1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--color-lighter-light-gray);
+        opacity: 0.9;
+    }
+
+.scrollable-piece {
+    max-height: 10cm;
+    overflow: auto;
+}
+
+.fade-in {
+    animation-name: fade-in;
+    animation-duration: 0.3s;
+}
+
+.word-option {
+    font-size: 0.4cm;
+    color: var(--color-gray);
+}
+
+.word-option:hover {
+    filter: brightness(50%);
+    text-decoration: underline;
+}
+
+
+@keyframes fade-in {
     from {
-        transform: translateY(-3cm);
         opacity: 0;
     }
 
     to {
-        transform: none;        
+        opacity: 1;
     }
 }

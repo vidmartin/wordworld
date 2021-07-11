@@ -3,6 +3,7 @@ import { GameMenu } from "./GameMenu.jsx";
 import { GameBoard } from "./GameBoard.jsx";
 import { MessageBoard } from "./MessageBoard.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
+import { AmbiguousJokerResolvePopup } from "./AmbiguousJokerResolvePopup.jsx";
 import { getCelebratoryStatementFromScore } from "./eulogies.js";
 
 export class GameContainer extends React.Component {
@@ -10,7 +11,9 @@ export class GameContainer extends React.Component {
         super(props);
 
         this.state = {
-            game: GAME_INITIAL
+            game: GAME_INITIAL,
+            ambiguousJokerUrl: null,
+            ambiguousJokerOptions: []
         };
 
         this.cache = {
@@ -26,6 +29,9 @@ export class GameContainer extends React.Component {
         this.handleDraggedLetterSet = this.handleDraggedLetterSet.bind(this);
         this.handleWordConfirm = this.handleWordConfirm.bind(this);
         this.handleWordCancel = this.handleWordCancel.bind(this);
+        this.sendWriteWordRequest = this.sendWriteWordRequest.bind(this);
+        this.handleAmbiguousJokerResolve = this.handleAmbiguousJokerResolve.bind(this);
+        this.handleAmbiguousJokerResolveCancel = this.handleAmbiguousJokerResolveCancel.bind(this);
     }
 
     componentDidMount() {
@@ -134,43 +140,60 @@ export class GameContainer extends React.Component {
         let usedIndices = this.state.game.usedLetterKeys.map(val1 =>
             this.state.game.inventory.findIndex(val2 => val2.key == val1));
 
-        fetch(`/game/write?token=${PLAYER_TOKEN}&word=${word.wordStr}&direction=${word.wordDir}&x=${word.wordPos.x}&y=${word.wordPos.y}&used=${usedIndices.join("_")}`)
-            .then(async response => {
-                if (response.ok != true) {
-                    console.log("nope 1");
-                    return; // HTTP fail
+        let url = `/game/write?token=${PLAYER_TOKEN}&word=${word.wordStr}&direction=${word.wordDir}&x=${word.wordPos.x}&y=${word.wordPos.y}&used=${usedIndices.join("_")}`;
+        this.sendWriteWordRequest(url);
+    }
+
+    sendWriteWordRequest(url) {
+        fetch(url).then(async response => {
+            if (response.ok != true) {
+                console.log("nope 1");
+                return; // HTTP fail
+            }
+
+            let data = await response.json();
+
+            console.log(data);
+
+            if (data.status != "ok") {
+                if (data.status == "ambiguous_joker") {
+                    // if there is a case of the ambiguous joker, set the state this way to trigger the ambiguous joker resolving menu
+                    console.log("ambiguous joker!!");
+                    console.log(data);
+
+                    this.setState({
+                        ambiguousJokerUrl: url,
+                        ambiguousJokerOptions: data.data.possibilities
+                    });
+
+                    return;
                 }
 
-                let data = await response.json();
-
-                console.log(data);
-
-                if (data.status != "ok") {
-                    if (data.status in STATUS_ERRORS) {
-                        MessageBoard.writeError(STATUS_ERRORS[data.status]);
-                    } else {
-                        MessageBoard.writeError(`[${data.status}]`);
-                    }
-                    console.log("nope 2");
-                    return; // backend isn't happy
+                if (data.status in STATUS_ERRORS) {
+                    MessageBoard.writeError(STATUS_ERRORS[data.status]);
+                } else {
+                    MessageBoard.writeError(`[${data.status}]`);
                 }
+                console.log("nope 2");
+                return; // backend isn't happy
+            }
 
-                let deltaScore = data.data.score - this.state.game.score;
+            let deltaScore = data.data.score - this.state.game.score;
 
-                this.setState({
-                    game: {
-                        ...this.state.game,
-                        score: data.data.score
-                    }
-                });
-
-                MessageBoard.writeOk(getCelebratoryStatementFromScore(deltaScore)); 
-
-                console.log(":)");
-                this.board.current.fetchBoard();
-                this.board.current.clearWord();                
-                this.fetchStatus();
+            this.setState({
+                game: {
+                    ...this.state.game,
+                    score: data.data.score
+                }
             });
+
+            MessageBoard.writeOk(getCelebratoryStatementFromScore(deltaScore));
+
+            console.log(":)");
+            this.board.current.fetchBoard();
+            this.board.current.clearWord();
+            this.fetchStatus();
+        });
     }
 
     handleWordCancel() {
@@ -183,12 +206,42 @@ export class GameContainer extends React.Component {
         });
     }
 
+    handleAmbiguousJokerResolve(selectedWord) {
+        this.sendWriteWordRequest(`${this.state.ambiguousJokerUrl}&spec=${selectedWord}`);
+        this.setState({
+            ambiguousJokerUrl: null,
+            ambiguousJokerOptions: []
+        });
+    }
+
+    handleAmbiguousJokerResolveCancel() {
+        this.setState({
+            ambiguousJokerUrl: null,
+            ambiguousJokerOptions: []
+        });
+    }
+
     render() {
+        let before = null;
+
+        if (this.state.ambiguousJokerUrl != null) {
+            before = (
+                <div className="overlay fade-in">
+                    <AmbiguousJokerResolvePopup
+                        words={this.state.ambiguousJokerOptions}
+                        onWordClick={this.handleAmbiguousJokerResolve}
+                        onCancel={this.handleAmbiguousJokerResolveCancel} />
+                </div>
+            );
+        }
+
         return (
             <div className="game-container">
+                {before}
                 <MessageBoard id="default" />
                 <Leaderboard />
                 <GameBoard game={this.state.game} ref={this.board}
+                    zoomEnabled={before == null}
                     onLetterPlop={this.handleLetterPlop}
                     onWordCancel={this.handleWordCancel} />
                 <GameMenu game={this.state.game}

@@ -286,9 +286,11 @@ export class GameBoard extends React.Component {
     }
 
     handleWheel(ev) {
-        this.setState({
-            zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, this.state.zoom + ev.deltaY * ZOOM_MULTIPLIER))
-        });
+        if (this.props.zoomEnabled == true) {
+            this.setState({
+                zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, this.state.zoom + ev.deltaY * ZOOM_MULTIPLIER))
+            });
+        }
     }
 
     getCellSize() {

@@ -117,10 +117,10 @@ namespace WordWorldWebApp.Services
                             => possibility.node.Children.Select(node
                                 => new _PlacementPossibility(
                                     possibility.fullWord + node.Letter,
-                                    possibility.placedLetters,
+                                    possibility.placedLetters.ToArray(), // we call to array to create a new instance (we don't want multiple nodes using the same list)
                                     currentCharOnBoard == ' ' ?
                                         possibility.placedJokers.Concat(new[] { node.Letter }) : // if the current cell of the board is empty, we need to put down this letter
-                                        possibility.placedJokers, // otherwise, we don't need to put down anything
+                                        possibility.placedJokers.ToArray(), // otherwise, we don't need to put down anything
                                     node
                                 )
                             )
