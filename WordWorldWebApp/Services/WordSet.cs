@@ -35,6 +35,11 @@ namespace WordWorldWebApp.Services
                     continue;
                 }
 
+                if (line.Any(ch => _root.GetArrayIndex(ch, -1) == -1))
+                {
+                    continue;
+                }
+
                 var curr = _root;
                 foreach (char ch in line.Trim())
                 {                   

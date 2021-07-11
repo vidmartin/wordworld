@@ -51,7 +51,11 @@ namespace WordWorldWebApp.DataStructures
 
         private readonly (char, char)[] _letterRanges;
 
-        private int GetArrayIndex(char ch)
+        /// <summary>
+        /// returns the index of the character in the letter range (each character in the letter range will get a unique index).
+        /// if the character isn't in the range: if default value is supplied, that will be returned; otherwise, an ArgumentException will be thrown.
+        /// </summary>
+        public int GetArrayIndex(char ch, int? defaultValue = null)
         {
             int curr = 0;
 
@@ -65,7 +69,7 @@ namespace WordWorldWebApp.DataStructures
                 curr += tuple.Item2 - tuple.Item1 + 1; // add length of current range
             }
 
-            throw new ArgumentException();
+            return defaultValue ?? throw new ArgumentException();
         }
 
         public int AlphabetLength => _letterRanges.Sum(tuple => tuple.Item2 - tuple.Item1 + 1);
