@@ -42,39 +42,11 @@ namespace WordWorldWebApp
             services.AddJsEngineSwitcher(options => options.DefaultEngineName = V8JsEngine.EngineName)
                 .AddV8();
 
-            //services.AddSingleton<BoardProvider>(_ => new BoardProvider()
-            //    .AddBoard("english1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
-            //        .UseLetterBag("english")
-            //        .UseWordSet("english")
-            //        .UseWordRater("english")
-            //        .UseDisplayName("English"))
-            //    .AddBoard("czech1", new ThreadSafeBoard(new ArrayBoard(1000, 1000)), options => options
-            //        .UseLetterBag("czech")
-            //        .UseWordSet("czech")
-            //        .UseWordRater("czech")
-            //        .UseDisplayName("Èeská"))
-            //    .SetDefaultBoard("english1"));
-
             DoStuffBasedOnConfig(services);
 
             services.AddSingleton<PlayerManager>();
-
-            //services.AddSingleton<WordSetProvider>(_ => new WordSetProvider()
-            //    .AddWordSet("english", new WordSet().SetLetterRange("a-z").LoadFromFile("./dict/english.txt"))
-            //    .AddWordSet("czech", new WordSet().SetLetterRange("a-z,á-").LoadFromFile("./dict/czech.txt")));
-
-            //services.AddSingleton<LetterBagProvider>(p => new LetterBagProvider(p)
-            //    .AddLetterBag("english", new SimpleLetterBag("*****eeeeeeeeeeeetttttttttaaaaaaaaoooooooiiiiiiinnnnnnnsssssshhhhhhrrrrrrddddllllcccuuummmwwwfffggyyppbbvklxqz"))
-            //    .AddLetterBag("czech", new SimpleLetterBag("*****ooooooooeeeeeeeennnnnnnaaaaaaattttttvvvvvsssssiiiillllkkkkrrrrddddpppííímmmuuuááázzjjyyììccbbééhøıèšùfgòxóïwq")));
-
-            //services.AddSingleton<WordRaterProvider>(p => new WordRaterProvider()
-            //    .AddWordRater("english", new WordRater().LoadDefaultCharMap())
-            //    .AddWordRater("czech", new WordRater().LoadCharMap("a:2,á:4,b:6,c:6,è:10,d:3,ï:20,e:2,é:7,ì:6,f:15,g:15,h:8,i:2,í:3,j:5,k:3,l:2,m:3,n:2,ò:20,o:1,ó:20,p:3,q:20,r:3,ø:8,s:2,š:10,t:2,:20,u:3,ú:15,ù:10,v:2,w:20,x:20,y:5,ı:10,z:5,:10")));
-
             services.AddSingleton<LeaderboardManager>();
-
             services.AddTransient<MoveChecker>();
-
             services.AddHostedService<PlayerCleaner>();
         }
 

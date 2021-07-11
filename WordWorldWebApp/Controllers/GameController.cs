@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WordWorldWebApp.Config;
 using WordWorldWebApp.Exceptions;
 using WordWorldWebApp.Extensions;
 using WordWorldWebApp.Game;
@@ -20,9 +22,6 @@ namespace WordWorldWebApp.Controllers
     [ApiController]
     public class GameController : Controller
     {
-        public const int PLAYERS_ON_LEADERBOARD_COUNT = 5;
-        public const int MIN_WORD_LENGTH = 3;
-
         private readonly BoardProvider _boardProvider;
         private readonly PlayerManager _playerManager;
         private readonly WordRaterProvider _wordRaterProvider;
@@ -30,6 +29,7 @@ namespace WordWorldWebApp.Controllers
         private readonly WordSetProvider _wordSetProvider;
         private readonly MoveChecker _moveChecker;
         private readonly LeaderboardManager _leaderboardManager;
+        private readonly WordWorldConfig _config;
 
         public GameController(
             BoardProvider boardProvider,
@@ -38,7 +38,8 @@ namespace WordWorldWebApp.Controllers
             LetterBagProvider letterBagProvider,
             WordSetProvider wordSetProvider,
             MoveChecker moveChecker,
-            LeaderboardManager leaderboardManager)
+            LeaderboardManager leaderboardManager,
+            IOptions<WordWorldConfig> options)
         {
             _boardProvider = boardProvider;
             _playerManager = playerManager;
@@ -47,6 +48,7 @@ namespace WordWorldWebApp.Controllers
             _wordSetProvider = wordSetProvider;
             _moveChecker = moveChecker;
             _leaderboardManager = leaderboardManager;
+            _config = options.Value;
         }
 
         [NonAction]
@@ -143,7 +145,7 @@ namespace WordWorldWebApp.Controllers
                     throw new AmbiguousJokerException(possibilities);
                 }
 
-                if (chosenPossibility.fullWord.Length < MIN_WORD_LENGTH)
+                if (chosenPossibility.fullWord.Length < _config.MinWordLength)
                 {
                     throw new WordTooShortException(chosenPossibility.fullWord);
                 }
@@ -205,7 +207,7 @@ namespace WordWorldWebApp.Controllers
 
             var leaderboard = (await _leaderboardManager.GetLeaderboardAsync())
                 .Where(p => p.Board == player.Board)
-                .Take(PLAYERS_ON_LEADERBOARD_COUNT);
+                .Take(_config.PlayersOnLeaderboardCount);
 
             return Ok(ApiResponse.Success(new
             {

@@ -13,5 +13,9 @@ namespace WordWorldWebApp.Config
         public Dictionary<string, WordRaterConfig> WordRaters { get; set; }
         public Dictionary<string, LetterBagConfig> LetterBags { get; set; }
         public Dictionary<string, WordSetConfig> WordSets { get; set; }
+
+        public int MinWordLength { get; set; }
+        public int PlayersOnLeaderboardCount { get; set; }
+        public int LettersPerPlayer { get; set; }
     }
 }

@@ -12,18 +12,20 @@ using WordWorldWebApp.DataStructures;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WordWorldWebApp.Exceptions;
 using System.ComponentModel.DataAnnotations;
+using WordWorldWebApp.Config;
+using Microsoft.Extensions.Options;
 
 namespace WordWorldWebApp.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly WordWorldConfig _config;
 
-        public const int START_LETTERS = 9;
-
-        public HomeController(IServiceProvider serviceProvider)
+        public HomeController(IServiceProvider serviceProvider, IOptions<WordWorldConfig> options)
         {
             _serviceProvider = serviceProvider;
+            _config = options.Value;
         }
 
         public IActionResult Index()
@@ -49,7 +51,7 @@ namespace WordWorldWebApp.Controllers
 
                 try
                 {
-                    player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(START_LETTERS));
+                    player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(_config.LettersPerPlayer));
                 }
                 catch (ValidationException validationException)
                 {
