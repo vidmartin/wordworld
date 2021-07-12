@@ -14,6 +14,16 @@ I created this game because I thought it was an interesting concept, but also to
 The game allows multiple boards to exist, and each player session is bound to one of these boards. The index page contains a form, that allows to
 join one of these boards under a given name.
 
+## Licence
+
+This code is not open-source, however it is available for personal use - you may download it, edit it, compile it and run it, as long as you don't distribute it or use it
+commercially without my permission. 
+
+## Contributing
+
+I uploaded this project to GitHub to let people know what I'm doing, but also so that people can tell me, if something in my code could be done in a better way.
+Criticism from more experienced developers is always welcome.
+
 ## Technical stuff
 
 ### Client-server communication
