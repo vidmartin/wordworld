@@ -7,21 +7,25 @@ using System.Threading.Tasks;
 using WordWorldWebApp.Services;
 using WordWorldWebApp.Extensions;
 using Microsoft.Extensions.Logging;
+using WordWorldWebApp.Config;
+using Microsoft.Extensions.Options;
 
 namespace WordWorldWebApp.HostedServices
 {
     public class PlayerCleaner : IHostedService, IDisposable
     {
-        public static readonly TimeSpan PLAYER_TIMEOUT = TimeSpan.FromMinutes(5); // TODO: load from config file
-        public static readonly TimeSpan CHECK_INVERVAL = TimeSpan.FromMinutes(1); // TODO: load from config file
+        // public static readonly TimeSpan PLAYER_TIMEOUT = TimeSpan.FromMinutes(5); // DONE: load from config file
+        // public static readonly TimeSpan CHECK_INVERVAL = TimeSpan.FromMinutes(1); // DONE: load from config file
 
         private readonly PlayerManager _playerManager;
         private readonly ILogger<PlayerCleaner> _logger;
+        private readonly WordWorldConfig _config;
 
-        public PlayerCleaner(PlayerManager playerManager, ILogger<PlayerCleaner> logger)
+        public PlayerCleaner(PlayerManager playerManager, ILogger<PlayerCleaner> logger, IOptions<WordWorldConfig> options)
         {
             _playerManager = playerManager;
             _logger = logger;
+            _config = options.Value;
         }
 
         public void Dispose()
@@ -53,7 +57,7 @@ namespace WordWorldWebApp.HostedServices
 
                 while (true)
                 {
-                    await Task.Delay(CHECK_INVERVAL);
+                    await Task.Delay(_config.PlayerActivityCheckInterval);
 
                     await _playerManager.DoAsyncAsync(async () =>
                     {
@@ -64,7 +68,7 @@ namespace WordWorldWebApp.HostedServices
                         int forgottenPlayas = 0;
                         foreach (var player in players)
                         {
-                            if (DateTime.Now - player.LastAction >= PLAYER_TIMEOUT)
+                            if (DateTime.Now - player.LastAction >= _config.PlayerActivityTimeout)
                             {
                                 _logger.LogDebug($"player {player} is inactive. let them be forever forgotten...");
 

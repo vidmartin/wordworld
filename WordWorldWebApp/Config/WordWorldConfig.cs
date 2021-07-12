@@ -17,5 +17,8 @@ namespace WordWorldWebApp.Config
         public int MinWordLength { get; set; }
         public int PlayersOnLeaderboardCount { get; set; }
         public int LettersPerPlayer { get; set; }
+
+        public TimeSpan PlayerActivityTimeout { get; set; }
+        public TimeSpan PlayerActivityCheckInterval { get; set; }
     }
 }
