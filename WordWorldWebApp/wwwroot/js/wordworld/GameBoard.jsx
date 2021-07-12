@@ -21,6 +21,7 @@ var PLACED_INVALID_CELL_COLOR = cssVar("--color-placed-letter-invalid").get();
 var PLACED_VALID_CELL_COLOR = cssVar("--colo-placed-letter-valid").get();
 var CELL_FONT_COLOR = cssVar("--color-white").get();
 var BOARD_RECT_PADDING = 10;
+var CANVAS_RESOLUTION = 10; // firefox měl problém s velikostí fontu (velký scale, mini font), tak je třeba to ošulit
 
 export class GameBoard extends React.Component {
     constructor(props) {
@@ -118,8 +119,8 @@ export class GameBoard extends React.Component {
             let cellSize = this.getCellSize();
 
             context.translate(Math.floor(canvasW / 2), Math.floor(canvasH / 2));
-            context.scale(cellSize.x, cellSize.y);
-            context.translate(-this.state.origin.x, -this.state.origin.y);
+            context.scale(cellSize.x / CANVAS_RESOLUTION, cellSize.y / CANVAS_RESOLUTION);
+            context.translate(-this.state.origin.x * CANVAS_RESOLUTION, -this.state.origin.y * CANVAS_RESOLUTION);
 
             context.textAlign = "center";
             context.textBaseline = "middle";
@@ -143,14 +144,15 @@ export class GameBoard extends React.Component {
                         letterChar = this.getCharAtGlobal(actualPos, true);                        
                     }
 
-                    context.fillRect(actualPos.x - CELL_RADIUS, actualPos.y - CELL_RADIUS, CELL_RADIUS * 2, CELL_RADIUS * 2);
+                    context.fillRect(
+                        (actualPos.x - CELL_RADIUS) * CANVAS_RESOLUTION,
+                        (actualPos.y - CELL_RADIUS) * CANVAS_RESOLUTION,
+                        CELL_RADIUS * 2 * CANVAS_RESOLUTION,
+                        CELL_RADIUS * 2 * CANVAS_RESOLUTION);
 
                     context.fillStyle = CELL_FONT_COLOR;
-
-                     // firefox měl problém s velikostí fontu (velký scale, mini font), tak je třeba to ošulit
-                    context.scale(0.1, 0.1);
-                    context.fillText(letterChar.toUpperCase(), actualPos.x * 10, actualPos.y * 10);
-                    context.scale(10, 10);
+                    
+                    context.fillText(letterChar.toUpperCase(), actualPos.x * CANVAS_RESOLUTION, actualPos.y * CANVAS_RESOLUTION);
                 }
             }
         } finally {
