@@ -90,7 +90,8 @@ export class GameBoard extends React.Component {
         return (
             <div className="game-board">
                 <canvas ref={this.canvas}
-                    onMouseDown={this.handleCanvasMouseDown} />
+                    onMouseDown={this.handleCanvasMouseDown}
+                    onContextMenu={ev => ev.preventDefault()} />
             </div>
         );
     }
@@ -283,15 +284,17 @@ export class GameBoard extends React.Component {
         }
     }
 
-    handleCanvasMouseDown() {
-        // code to start dragging
-        this.cache.dragStartMousePos = getMousePos();
-        this.cache.dragStartOrigin = this.state.origin;
-        this.cache.isDragging = true;
+    handleCanvasMouseDown(ev) {
+        if (ev.button == 0) {
+            // code to start dragging
+            this.cache.dragStartMousePos = getMousePos();
+            this.cache.dragStartOrigin = this.state.origin;
+            this.cache.isDragging = true;
+        }
     }
 
-    handleMouseUp() {
-        if (this.cache.isDragging) {
+    handleMouseUp(ev) {
+        if (this.cache.isDragging && ev.button == 0) {
             // code to stop dragging
             this.cache.isDragging = false;            
         }
