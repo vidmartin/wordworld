@@ -1,4 +1,6 @@
 ﻿
+import { localize } from "./localizer.js";
+
 var LEADERBOARD_ITEM_HEIGHT_CM = 0.8;
 
 function LeaderboardItem(props) {
@@ -64,7 +66,7 @@ export class Leaderboard extends React.Component {
     render() {
         return (
             <div className="leaderboard">
-                <div className="leaderboard-header">Leaderboard</div>
+                <div className="leaderboard-header">{localize("leaderboard.header")}</div>
                 <div className="leaderboard-content">
                     {
                         this.state.leaderboard.map((item, index) => (

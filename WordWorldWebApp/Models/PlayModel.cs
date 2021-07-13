@@ -24,7 +24,5 @@ namespace WordWorldWebApp.Models
         public Vec2i BoardSize { get; set; }
 
         public Dictionary<char, int> CharactersWithScores { get; set; }
-
-        public string Language { get; set; }
     }
 }

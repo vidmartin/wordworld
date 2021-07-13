@@ -5,6 +5,7 @@ import { MessageBoard } from "./MessageBoard.jsx";
 import { Leaderboard } from "./Leaderboard.jsx";
 import { AmbiguousJokerResolvePopup } from "./AmbiguousJokerResolvePopup.jsx";
 import { getCelebratoryStatementFromScore } from "./eulogies.js";
+import { localizeError } from "./errorTranslator.js";
 
 export class GameContainer extends React.Component {
     constructor(props) {
@@ -158,6 +159,10 @@ export class GameContainer extends React.Component {
     handleWordConfirm() {
         let word = this.board.current.getWordSafeDir();
 
+        if (word == null) {
+            return;
+        }
+
         // get the indexes of letters that were used in the new word
         let usedIndices = this.state.game.usedLetterKeys.map(val1 =>
             this.state.game.inventory.findIndex(val2 => val2.key == val1));
@@ -193,11 +198,7 @@ export class GameContainer extends React.Component {
                 return;
             }
 
-            if (json.status in STATUS_ERRORS) {
-                MessageBoard.writeError(STATUS_ERRORS[json.status]);
-            } else {
-                MessageBoard.writeError(`[${json.status}]`);
-            }
+            MessageBoard.writeError(localizeError(json.status));
             
             return; // backend isn't happy
         }

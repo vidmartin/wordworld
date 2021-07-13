@@ -1,4 +1,6 @@
 ﻿
+import { localize } from "./localizer.js";
+
 export class AmbiguousJokerResolvePopup extends React.Component {
     constructor(props) {
         super(props);
@@ -13,11 +15,11 @@ export class AmbiguousJokerResolvePopup extends React.Component {
 
         return (
             <div className="popup">
-                <h2>Your joker is ambiguous!</h2>
-                <div>Which one of these words did you mean:</div>
+                <h2>{localize("ambiguous_joker_popup.header")}</h2>
+                <div>{localize("ambiguous_joker_popup.text")}</div>
                 <div className="scrollable-piece">{words}</div>
                 <br />
-                <a className="word-option" style={{ color: 'red' }} onClick={() => this.props.onCancel?.()}>cancel</a>
+                <a className="word-option" style={{ color: 'red' }} onClick={() => this.props.onCancel?.()}>{localize("cancel")}</a>
             </div>
         );
     }

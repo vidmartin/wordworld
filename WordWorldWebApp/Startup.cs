@@ -15,6 +15,8 @@ using React.AspNet;
 using WordWorldWebApp.HostedServices;
 using Microsoft.Extensions.Configuration;
 using WordWorldWebApp.Config;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 namespace WordWorldWebApp
 {
@@ -36,6 +38,19 @@ namespace WordWorldWebApp
             services.AddLocalization(options =>
             {
                 options.ResourcesPath = "Resources";
+            });
+
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("en"),
+                    new CultureInfo("cs")
+                };
+
+                options.DefaultRequestCulture = new RequestCulture(supportedCultures[0]);
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
             });
 
             services.AddMvc()
@@ -94,12 +109,7 @@ namespace WordWorldWebApp
 
             app.UseRouting();
 
-            var supportedCultures = new[] { "en", "cs" };
-
-            app.UseRequestLocalization(new RequestLocalizationOptions()
-                .SetDefaultCulture(supportedCultures[0])
-                .AddSupportedCultures(supportedCultures)
-                .AddSupportedUICultures(supportedCultures));
+            app.UseRequestLocalization();
 
             app.UseEndpoints(endpoints =>
             {

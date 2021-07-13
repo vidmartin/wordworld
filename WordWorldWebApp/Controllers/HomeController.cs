@@ -85,8 +85,7 @@ namespace WordWorldWebApp.Controllers
                 BoardArray = "",
                 BoardRect = new Rect(0, 0, 0, 0),
                 BoardSize = new Vec2i(boardInstance.Width, boardInstance.Height),
-                CharactersWithScores = wordRaterProvider.GetWordRater(boardProvider.WordRaterOf(boardInstance)).CharMap,
-                Language = boardProvider.WordSetOf(boardInstance) // viz startup
+                CharactersWithScores = wordRaterProvider.GetWordRater(boardProvider.WordRaterOf(boardInstance)).CharMap,                
             });
 
             // return Content("<b>Hello!</b>");
