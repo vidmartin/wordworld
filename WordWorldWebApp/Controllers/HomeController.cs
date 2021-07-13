@@ -14,6 +14,7 @@ using WordWorldWebApp.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using WordWorldWebApp.Config;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 
 namespace WordWorldWebApp.Controllers
 {
@@ -39,7 +40,8 @@ namespace WordWorldWebApp.Controllers
             [FromServices] PlayerManager playerManager,
             [FromServices] BoardProvider boardProvider,
             [FromServices] LetterBagProvider letterBagProvider,
-            [FromServices] WordRaterProvider wordRaterProvider)
+            [FromServices] WordRaterProvider wordRaterProvider,
+            [FromServices] IStringLocalizer<ValidationLocalizer> validationMessageLocalizer)
         {
             var boardInstance = boardProvider.GetBoard(board ?? boardProvider.DefaultBoardKey);
 
@@ -55,12 +57,12 @@ namespace WordWorldWebApp.Controllers
                 }
                 catch (ValidationException validationException)
                 {
-                    ModelState.AddModelError("", validationException.ValidationResult.ErrorMessage);
+                    ModelState.AddModelError("", validationMessageLocalizer[validationException.ValidationResult.ErrorMessage]);
                     return View("Index");
                 }
                 catch (AlreadyExistsException)
                 {
-                    ModelState.AddModelError("", "Username already exists.");
+                    ModelState.AddModelError("", validationMessageLocalizer["username_taken"]);
                     return View("Index");
                 }
 

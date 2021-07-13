@@ -55,15 +55,19 @@ namespace WordWorldWebApp
 
             services.AddMvc()
                 .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
-                .AddDataAnnotationsLocalization();
-
+                .AddDataAnnotationsLocalization(options =>
+                {
+                    // make it so that all types share one type for retrieving localized validation messages (dummy type)
+                    options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(ValidationLocalizer));                    
+                });
+            
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddReact();
 
             services.AddJsEngineSwitcher(options => options.DefaultEngineName = V8JsEngine.EngineName)
                 .AddV8();
-
+            
             DoStuffBasedOnConfig(services);
 
             services.AddSingleton<PlayerManager>();
