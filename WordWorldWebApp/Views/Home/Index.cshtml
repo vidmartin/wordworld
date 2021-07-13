@@ -1,4 +1,5 @@
 ﻿
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer viewLocalizer
 @inject WordWorldWebApp.Services.BoardProvider BoardProvider
 
 <html>
@@ -23,16 +24,16 @@
                     <div class="validation-error">@error.ErrorMessage</div>
                 }
             }
-            <label>Username</label>
+            <label>@viewLocalizer["username"]</label>
             <input type="text" name="username" />
-            <label>Board</label>
+            <label>@viewLocalizer["game_board"]</label>
             <select name="board">
                 @foreach (var board in BoardProvider.EnumerateBoards())
                 {
                     <option value="@board">@BoardProvider.GetBoard(board).DisplayName</option>
                 }
             </select>
-            <button onclick="startGame()">Play!</button>
+            <button onclick="startGame()">@viewLocalizer["play_button"]</button>
         </div>
     </div>
 </body>

@@ -33,7 +33,14 @@ namespace WordWorldWebApp
         {
             services.Configure<WordWorldConfig>(_configuration.GetSection(WordWorldConfig.CONFIG_KEY));
 
-            services.AddMvc();
+            services.AddLocalization(options =>
+            {
+                options.ResourcesPath = "Resources";
+            });
+
+            services.AddMvc()
+                .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
+                .AddDataAnnotationsLocalization();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -86,6 +93,13 @@ namespace WordWorldWebApp
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            var supportedCultures = new[] { "en", "cs" };
+
+            app.UseRequestLocalization(new RequestLocalizationOptions()
+                .SetDefaultCulture(supportedCultures[0])
+                .AddSupportedCultures(supportedCultures)
+                .AddSupportedUICultures(supportedCultures));
 
             app.UseEndpoints(endpoints =>
             {
