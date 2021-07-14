@@ -1,6 +1,10 @@
 ﻿
+@model WordWorldWebApp.Models.PlayerCreateModel 
+
 @inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer viewLocalizer
 @inject WordWorldWebApp.Services.BoardProvider BoardProvider
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <html>
 <head>
@@ -16,25 +20,28 @@
 </head>
 <body>
     <div>
-        <div class="username-prompt">
-            @if (!ViewData.ModelState.IsValid)
-            {
-                @foreach(var error in ViewData.ModelState.SelectMany(entry => entry.Value.Errors))
+        <form asp-controller="Home" asp-action="Play" method="post">
+            <div class="username-prompt">
+
+                @if (!ViewData.ModelState.IsValid)
                 {
-                    <div class="validation-error">@error.ErrorMessage</div>
+                    @foreach (var error in ViewData.ModelState.SelectMany(entry => entry.Value.Errors))
+                    {
+                        <div class="validation-error">@error.ErrorMessage</div>
+                    }
                 }
-            }
-            <label>@viewLocalizer["username"]</label>
-            <input type="text" name="username" />
-            <label>@viewLocalizer["game_board"]</label>
-            <select name="board">
-                @foreach (var board in BoardProvider.EnumerateBoards())
-                {
-                    <option value="@board">@BoardProvider.GetBoard(board).DisplayName</option>
-                }
-            </select>
-            <button onclick="startGame()">@viewLocalizer["play_button"]</button>
-        </div>
+                <label>@viewLocalizer["username"]</label>
+                <input type="text" name="username" asp-for="@Model.Username" />
+                <label>@viewLocalizer["game_board"]</label>
+                <select name="board" asp-for="@Model.Board">
+                    @foreach (var board in BoardProvider.EnumerateBoards())
+                    {
+                        <option value="@board">@BoardProvider.DisplayNameOf(board)</option>
+                    }
+                </select>
+                <button type="submit">@viewLocalizer["play_button"]</button>
+            </div>
+        </form>
     </div>
 </body>
 </html>

@@ -117,19 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="username_invalid_characters" xml:space="preserve">
-    <value>Přezdívka smí obsahovat pouze písmena, čísla a podtržítka.</value>
+  <data name="czech1.name" xml:space="preserve">
+    <value>Česká</value>
   </data>
-  <data name="username_missing" xml:space="preserve">
-    <value>Musíš zadat přezdívku!</value>
-  </data>
-  <data name="username_taken" xml:space="preserve">
-    <value>Tato přezdívka už je zabraná.</value>
-  </data>
-  <data name="username_too_long" xml:space="preserve">
-    <value>Přezdívka nesmí být delší než 10 znaků.</value>
-  </data>
-  <data name="username_too_short" xml:space="preserve">
-    <value>Přezdívka musí být dlouhá alespoň 4 znaky.</value>
+  <data name="english1.name" xml:space="preserve">
+    <value>Anglická</value>
   </data>
 </root>

@@ -55,7 +55,7 @@ namespace WordWorldWebApp.Services
             }
 
             var player = new _Player(Guid.NewGuid().ToString(), username, board, DateTime.Now, letters);
-            ValidatePlayer(player);
+            // ValidatePlayer(player); this should now be done by MVC
 
             _playersByToken.Add(player.Token, player);
             _playersByUsername.Add(player.Username, player);

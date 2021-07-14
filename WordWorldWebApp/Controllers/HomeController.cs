@@ -21,76 +21,94 @@ namespace WordWorldWebApp.Controllers
     public class HomeController : Controller
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly PlayerManager _playerManager;
+        private readonly BoardProvider _boardProvider;
+        private readonly LetterBagProvider _letterBagProvider;
+        private readonly WordRaterProvider _wordRaterProvider;
         private readonly WordWorldConfig _config;
 
-        public HomeController(IServiceProvider serviceProvider, IOptions<WordWorldConfig> options)
+        public HomeController(IServiceProvider serviceProvider, IOptions<WordWorldConfig> options,
+            PlayerManager playerManager,
+            BoardProvider boardProvider,
+            LetterBagProvider letterBagProvider,
+            WordRaterProvider wordRaterProvider)
         {
             _serviceProvider = serviceProvider;
+            _playerManager = playerManager;
+            _boardProvider = boardProvider;
+            _letterBagProvider = letterBagProvider;
+            _wordRaterProvider = wordRaterProvider;
             _config = options.Value;
         }
 
         public IActionResult Index()
         {
-            return View();
+            return View(new PlayerCreateModel());
         }
 
-        [Route("/play/{board?}")]
-        public async Task<IActionResult> Play([FromQuery] string token, [FromQuery] string username,
-            [FromRoute] string board,
-            [FromServices] PlayerManager playerManager,
-            [FromServices] BoardProvider boardProvider,
-            [FromServices] LetterBagProvider letterBagProvider,
-            [FromServices] WordRaterProvider wordRaterProvider,
-            [FromServices] IStringLocalizer<ValidationLocalizer> validationMessageLocalizer)
+        [Route("/play")]
+        [HttpPost]
+        public async Task<IActionResult> Play(PlayerCreateModel playerCreateModel, [FromServices] IStringLocalizer<ValidationLocalizer> validationMessageLocalizer)
         {
-            var boardInstance = boardProvider.GetBoard(board ?? boardProvider.DefaultBoardKey);
+            // create new player
+
+            if (!ModelState.IsValid)
+            {
+                return View("Index", playerCreateModel);
+            }
 
             Player player = default;
 
-            if (token == null)
+            try
             {
-                // create new player / vytvořit nového hráče
+                Board boardInstance = _boardProvider.GetBoard(playerCreateModel.Board);
+                player = await _playerManager.NewAsync(boardInstance, playerCreateModel.Username, _letterBagProvider.GetLetterBag(_boardProvider.LetterBagOf(boardInstance)).Pull(_config.LettersPerPlayer));
 
-                try
-                {
-                    player = await playerManager.NewAsync(boardInstance, username, letterBagProvider.GetLetterBag(boardProvider.LetterBagOf(boardInstance)).Pull(_config.LettersPerPlayer));
-                }
-                catch (ValidationException validationException)
-                {
-                    ModelState.AddModelError("", validationMessageLocalizer[validationException.ValidationResult.ErrorMessage]);
-                    return View("Index");
-                }
-                catch (AlreadyExistsException)
-                {
-                    ModelState.AddModelError("", validationMessageLocalizer["username_taken"]);
-                    return View("Index");
-                }
-
-                return RedirectToAction(ControllerContext.ActionDescriptor.ActionName, new { token = player.Token });
-                
-                // token = player.Token;
+                return RedirectToAction("Play", new { token = player.Token, username = player.Username, board = playerCreateModel.Board });
             }
-            else
+            catch (Exception e)
             {
-                player = await playerManager.GetAsync(token) ?? throw new PlayerNotFoundException();
-            }
+                ModelState.AddModelError("", validationMessageLocalizer[e switch
+                {
+                    BoardNotFoundException => "board_not_found",
+                    AlreadyExistsException => "username_taken",
+                    ValidationException validationException => validationException.ValidationResult.ErrorMessage,
+                    _ => throw e
+                }]);
 
-            var origin = new Vec2i(boardInstance.Width / 2, boardInstance.Height / 2);
+                return View("Index", playerCreateModel);
+            }            
+        }
+        
+        [Route("/play/{board?}")]
+        [HttpGet]
+        public async Task<IActionResult> Play([FromQuery] string token, [FromQuery] string username, [FromRoute] string board)
+        {
+            var boardInstance = _boardProvider.GetBoard(board ?? _boardProvider.DefaultBoardKey);
+
+            Player player = await _playerManager.GetAsync(token) ?? throw new PlayerNotFoundException();
+
+            return GameView(player);
+
+            // return Content("<b>Hello!</b>");
+        }
+
+        private IActionResult GameView(Player player)
+        {
+            var origin = new Vec2i(player.Board.Width / 2, player.Board.Height / 2);
 
             // zobrazit hrací pole daného hráče
             return View(new PlayModel()
             {
-                Token = token,
+                Token = player.Token,
                 Username = player.Username,
                 PlayerStatus = PlayerStatus.From(player),
                 Origin = origin,
                 BoardArray = "",
                 BoardRect = new Rect(0, 0, 0, 0),
-                BoardSize = new Vec2i(boardInstance.Width, boardInstance.Height),
-                CharactersWithScores = wordRaterProvider.GetWordRater(boardProvider.WordRaterOf(boardInstance)).CharMap,                
+                BoardSize = new Vec2i(player.Board.Width, player.Board.Height),
+                CharactersWithScores = _wordRaterProvider.GetWordRater(_boardProvider.WordRaterOf(player.Board)).CharMap,
             });
-
-            // return Content("<b>Hello!</b>");
         }
 
         public override void OnActionExecuted(ActionExecutedContext context)

@@ -47,10 +47,6 @@ namespace WordWorldWebApp.Game
 
         public int Score { get; set; } = 0;       
         
-        [Required(ErrorMessage = "username_missing")]
-        [MinLength(4, ErrorMessage = "username_too_short")]
-        [MaxLength(10, ErrorMessage = "username_too_long")]
-        [RegularExpression(@"\w+", ErrorMessage = "username_invalid_characters")]
         public abstract string Username { get; }
     }
 }

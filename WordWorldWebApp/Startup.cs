@@ -58,7 +58,7 @@ namespace WordWorldWebApp
                 .AddDataAnnotationsLocalization(options =>
                 {
                     // make it so that all types share one type for retrieving localized validation messages (dummy type)
-                    options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(ValidationLocalizer));                    
+                    options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(ValidationLocalizer));             
                 });
             
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -81,20 +81,24 @@ namespace WordWorldWebApp
             var config = new WordWorldConfig();
             _configuration.Bind(WordWorldConfig.CONFIG_KEY, config);
 
-            services.AddSingleton<BoardProvider>(_ => config.Boards.OrderBy(board => board.Value.Order).Aggregate(new BoardProvider(),
+            services.AddSingleton<BoardProvider>(p => config.Boards.OrderBy(board => board.Value.Order).Aggregate(
+                ActivatorUtilities.CreateInstance<BoardProvider>(p),
                 (boardProvider, boardConfig) => boardProvider.AddBoard(boardConfig.Key,
                     new ThreadSafeBoard(new ArrayBoard(boardConfig.Value.Width, boardConfig.Value.Height)),
                         board => board.UseConfig(boardConfig.Value))));
 
-            services.AddSingleton<WordSetProvider>(_ => config.WordSets.Aggregate(new WordSetProvider(),
+            services.AddSingleton<WordSetProvider>(p => config.WordSets.Aggregate(
+                ActivatorUtilities.CreateInstance<WordSetProvider>(p),
                 (wordSetProvider, wordSetConfig) => wordSetProvider.AddWordSet(wordSetConfig.Key,
                     new WordSet().UseConfig(wordSetConfig.Value))));
 
-            services.AddSingleton<LetterBagProvider>(p => config.LetterBags.Aggregate(new LetterBagProvider(p),
+            services.AddSingleton<LetterBagProvider>(p => config.LetterBags.Aggregate(
+                ActivatorUtilities.CreateInstance<LetterBagProvider>(p),
                 (letterBagProvider, letterBagConfig) => letterBagProvider.AddLetterBag(letterBagConfig.Key,
                     new SimpleLetterBag().UseConfig(letterBagConfig.Value))));
 
-            services.AddSingleton<WordRaterProvider>(_ => config.WordRaters.Aggregate(new WordRaterProvider(),
+            services.AddSingleton<WordRaterProvider>(p => config.WordRaters.Aggregate(
+                ActivatorUtilities.CreateInstance<WordRaterProvider>(p),
                 (wordRaterProvider, wordRaterConfig) => wordRaterProvider.AddWordRater(wordRaterConfig.Key,
                     new WordRater().UseConfig(wordRaterConfig.Value))));
         }

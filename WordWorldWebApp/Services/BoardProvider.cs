@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.Extensions.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WordWorldWebApp.Config;
+using WordWorldWebApp.Exceptions;
 using WordWorldWebApp.Game;
 
 namespace WordWorldWebApp.Services
@@ -12,11 +14,17 @@ namespace WordWorldWebApp.Services
     /// </summary>
     public class BoardProvider
     {
+        public BoardProvider(IStringLocalizer<BoardProvider> boardNameLocalizer)
+        {
+            _boardNameLocalizer = boardNameLocalizer;
+        }
+
         private readonly Dictionary<string, Board> _boards = new Dictionary<string, Board>();
         private readonly Dictionary<Board, string> _wordSets = new Dictionary<Board, string>();
         private readonly Dictionary<Board, string> _letterBags = new Dictionary<Board, string>();
         private readonly Dictionary<Board, string> _wordRaters = new Dictionary<Board, string>();
-       
+        private readonly IStringLocalizer<BoardProvider> _boardNameLocalizer;
+
         public string DefaultBoardKey { get; set; }
 
         private class _BoardConfigurer : IBoardConfigurer
@@ -28,13 +36,6 @@ namespace WordWorldWebApp.Services
             {
                 _parent = parent;
                 _board = board;
-            }
-
-            public IBoardConfigurer UseDisplayName(string displayName)
-            {
-                _board.DisplayName = displayName;
-
-                return this;
             }
 
             public IBoardConfigurer UseLetterBag(string key)
@@ -60,7 +61,7 @@ namespace WordWorldWebApp.Services
 
             public IBoardConfigurer UseConfig(BoardConfig config)
             {
-                return this.UseDisplayName(config.DisplayName)
+                return this
                     .UseLetterBag(config.LetterBag)
                     .UseWordRater(config.WordRater)
                     .UseWordSet(config.WordSet);
@@ -83,9 +84,9 @@ namespace WordWorldWebApp.Services
             return this;
         }
 
-        public Board GetBoard(string key)
+        public Board GetBoard(string key, Func<Board> defaultFactory = null)
         {
-            return _boards[key];
+            return _boards.TryGetValue(key, out Board result) ? result : defaultFactory?.Invoke() ?? throw new BoardNotFoundException();
         }
 
         public IEnumerable<string> EnumerateBoards()
@@ -96,5 +97,6 @@ namespace WordWorldWebApp.Services
         public string WordSetOf(Board board) => _wordSets[board];
         public string LetterBagOf(Board board) => _letterBags[board];
         public string WordRaterOf(Board board) => _wordRaters[board];
+        public string DisplayNameOf(string boardKey) => _boardNameLocalizer[$"{boardKey}.name"];
     }
 }

@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="username_invalid_character" xml:space="preserve">
+  <data name="username_invalid_characters" xml:space="preserve">
     <value>Nickname can contain only letters, digits and underscores.</value>
   </data>
   <data name="username_missing" xml:space="preserve">

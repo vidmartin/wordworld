@@ -10,7 +10,6 @@ namespace WordWorldWebApp.Config
         public string WordRater { get; set; }
         public string LetterBag { get; set; }
         public string WordSet { get; set; }
-        public string DisplayName { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public int Order { get; set; }
